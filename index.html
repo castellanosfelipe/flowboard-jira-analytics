@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jira Gantt</title>
+    <link rel="stylesheet" href="styles.css?v=20260601-pert">
+  </head>
+  <body>
+    <main class="page">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Linea de tiempo del proyecto</p>
+          <h1>Jira Gantt</h1>
+          <p class="subtitle">Consulta, filtra y visualiza tickets por usuario, tarea y subtarea.</p>
+        </div>
+
+        <div class="header-actions" aria-label="Acciones principales">
+          <nav class="view-tabs" aria-label="Cambiar vista">
+            <button id="ganttViewButton" class="tab-button active" type="button">Gantt</button>
+            <button id="pertViewButton" class="tab-button" type="button">PERT</button>
+            <button id="analyticsViewButton" class="tab-button" type="button">Tablero ejecutivo</button>
+          </nav>
+          <div class="theme-switcher" role="group" aria-label="Seleccionar tema">
+            <span>Tema</span>
+            <button class="theme-icon-button" type="button" data-theme-option="light" aria-label="Tema claro" title="Tema claro">
+              <span aria-hidden="true">☀</span>
+            </button>
+            <button class="theme-icon-button" type="button" data-theme-option="dark" aria-label="Tema oscuro" title="Tema oscuro">
+              <span aria-hidden="true">☾</span>
+            </button>
+          </div>
+          <div class="language-switcher" role="group" aria-label="Cambiar idioma">
+            <span>Idioma</span>
+            <button class="language-button active" type="button" data-language-option="es" aria-label="Español" title="Español">ES</button>
+            <button class="language-button" type="button" data-language-option="en" aria-label="English" title="English">EN</button>
+          </div>
+          <button id="searchButton" class="primary-button icon-action-button" type="button" aria-label="Consultar Jira" title="Consultar Jira">
+            <span class="icon-search-jira" aria-hidden="true"></span>
+          </button>
+          <button id="refreshButton" class="secondary-button icon-action-button" type="button" aria-label="Refrescar datos" title="Refrescar datos">
+            <span aria-hidden="true">↻</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="panel config-panel" aria-labelledby="configTitle">
+        <button id="configToggle" class="config-tab" type="button" aria-expanded="false" aria-controls="configContent">
+          <div>
+            <h2 id="configTitle">Configuracion de Jira</h2>
+            <p>Mostrar u ocultar credenciales, URL base y JQL.</p>
+          </div>
+          <span aria-hidden="true">+</span>
+        </button>
+
+        <div id="configContent" class="config-content" hidden>
+          <form id="jiraForm" class="config-grid">
+            <label>
+              URL base de Jira
+              <input id="jiraBaseUrl" type="url" placeholder="https://empresa.atlassian.net" required>
+            </label>
+
+            <label>
+              Email o usuario
+              <input id="jiraUser" type="text" placeholder="usuario@empresa.com" autocomplete="off" required>
+            </label>
+
+            <label>
+              API Token
+              <input id="jiraToken" type="password" placeholder="Ingresa el token manualmente" autocomplete="off" required>
+            </label>
+
+            <label class="wide">
+              JQL de busqueda
+              <input id="jiraJql" type="text" value="project = DES ORDER BY updated DESC" required>
+            </label>
+          </form>
+
+          <p class="connection-note">URL, usuario y JQL se guardan en este navegador. El token solo se recuerda durante la sesion local actual.</p>
+
+          <div class="security-warning" role="note">
+            <strong>Advertencia de seguridad:</strong>
+            este prototipo envia credenciales desde el navegador hacia un proxy local. En produccion, el token debe vivir solo en un backend seguro o secret manager.
+          </div>
+        </div>
+      </section>
+
+      <section class="panel filters-panel" aria-labelledby="filtersTitle">
+        <div class="config-tab filters-tab">
+          <div>
+            <h2 id="filtersTitle">Filtros</h2>
+            <p id="resultCounter">Sin datos cargados.</p>
+          </div>
+          <div class="filter-actions">
+            <span id="activeFilterBadge" class="badge">0 filtros activos</span>
+            <button id="clearFiltersButton" class="secondary-button" type="button">Limpiar filtros</button>
+            <button id="filtersToggle" class="panel-toggle-button" type="button" aria-expanded="false" aria-controls="filtersContent" aria-label="Mostrar filtros">
+              <span class="panel-toggle-icon" aria-hidden="true">+</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="filtersContent" class="config-content" hidden>
+          <div class="filters-grid">
+            <label class="search-field">
+              Busqueda rapida
+              <input id="quickSearch" type="search" placeholder="Buscar por clave, tarea o texto parcial" autocomplete="off">
+            </label>
+
+            <fieldset class="checkbox-filter">
+              <legend>Proyecto</legend>
+              <div id="projectFilter" class="checkbox-options" aria-label="Filtrar por proyecto"></div>
+            </fieldset>
+
+            <fieldset class="checkbox-filter">
+              <legend>Usuario asignado</legend>
+              <div id="assigneeFilter" class="checkbox-options" aria-label="Filtrar por usuario asignado"></div>
+            </fieldset>
+
+            <fieldset class="checkbox-filter">
+              <legend>Ocultar usuarios</legend>
+              <div id="hiddenAssigneeFilter" class="checkbox-options" aria-label="Ocultar usuarios del Gantt y tablero ejecutivo"></div>
+            </fieldset>
+
+            <fieldset class="checkbox-filter">
+              <legend>Estado</legend>
+              <div id="statusFilter" class="checkbox-options" aria-label="Filtrar por estado"></div>
+            </fieldset>
+
+            <fieldset class="checkbox-filter">
+              <legend>Sprint</legend>
+              <div id="sprintFilter" class="checkbox-options" aria-label="Filtrar por sprint"></div>
+            </fieldset>
+
+            <div class="date-range-filter" data-date-range="gantt">
+              <button id="ganttDateRangeButton" class="date-range-button" type="button" data-date-range-toggle="gantt" aria-expanded="false" aria-controls="ganttDateRangePanel">
+                <span class="date-range-icon" aria-hidden="true">📅</span>
+                <span class="date-range-button-text">Rango de fecha</span>
+                <strong id="ganttDateRangeSummary">Todas las fechas</strong>
+              </button>
+
+              <div id="ganttDateRangePanel" class="date-range-panel" data-date-range-panel="gantt" hidden>
+                <label>
+                  Desde
+                  <input id="startDateFilter" type="date">
+                </label>
+
+                <label>
+                  Hasta
+                  <input id="endDateFilter" type="date">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="toggle-row" aria-label="Filtros booleanos">
+            <label class="toggle">
+              <input id="showSubtasksFilter" type="checkbox" checked>
+              <span>Mostrar subtareas</span>
+            </label>
+
+            <label class="toggle">
+              <input id="excludeDoneFilter" type="checkbox" checked>
+              <span>Excluir finalizadas</span>
+            </label>
+
+            <label class="toggle">
+              <input id="activeOnlyFilter" type="checkbox">
+              <span>Solo tareas activas</span>
+            </label>
+
+            <label class="toggle">
+              <input id="overdueOnlyFilter" type="checkbox">
+              <span>Solo vencidas</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section id="messageArea" class="message-area" aria-live="polite">
+        <div id="loadingBox" class="loading-box" hidden></div>
+        <div id="errorBox" class="error-box" hidden></div>
+      </section>
+
+      <section id="ganttView" class="view-page">
+      <section class="panel gantt-panel" aria-labelledby="ganttTitle">
+        <div class="gantt-toolbar">
+          <div>
+            <h2 id="ganttTitle">Gantt por usuario asignado</h2>
+            <p id="summaryText">Carga inicial. Ingresa credenciales y consulta Jira.</p>
+          </div>
+
+          <div class="view-controls" aria-label="Controles de visualizacion">
+            <button class="export-button module-export-button" type="button" data-export-module="gantt" aria-label="Exportar Gantt a Excel" title="Exportar Gantt a Excel">⇩</button>
+            <div class="timeline-zoom" aria-label="Zoom de linea de tiempo">
+              <div id="timelineZoomOptions" class="timeline-zoom-options">
+                <button class="zoom-option" type="button" data-zoom="today">Hoy</button>
+                <button class="zoom-option active" type="button" data-zoom="week">Semanas</button>
+                <button class="zoom-option" type="button" data-zoom="month">Meses</button>
+                <button class="zoom-option" type="button" data-zoom="quarter">Trimestres</button>
+              </div>
+              <button class="zoom-info" type="button" title="Ctrl + rueda del mouse sobre el Gantt para cambiar el zoom" aria-label="Informacion de zoom">i</button>
+              <button id="collapseZoomButton" class="zoom-collapse" type="button" aria-label="Colapsar controles de zoom" aria-expanded="true">›</button>
+            </div>
+            <button id="groupPrincipalButton" class="secondary-button icon-action-button" type="button" aria-pressed="false" title="Agrupar por Principal" aria-label="Agrupar por Principal">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M7 5h10M7 12h10M7 19h10M4 5h.01M4 12h.01M4 19h.01" />
+                <path d="M4 5v14" />
+              </svg>
+            </button>
+            <button id="expandAllButton" class="secondary-button" type="button">Expandir</button>
+            <button id="collapseUsersButton" class="secondary-button" type="button">Colapsar usuarios</button>
+            <button id="collapseTasksButton" class="secondary-button" type="button">Colapsar tareas</button>
+          </div>
+        </div>
+
+        <div class="gantt-shell">
+          <div class="gantt" id="ganttContainer" tabindex="0" aria-label="Diagrama Gantt con scroll horizontal">
+            <div class="gantt-header">
+              <div class="issue-column">Usuario / Ticket</div>
+              <div id="timelineHeader" class="timeline-column"></div>
+            </div>
+            <div id="ganttBody" class="gantt-body">
+              <div class="empty-state">
+                <strong>Carga inicial</strong>
+                <span>Completa los datos de Jira y ejecuta la consulta para visualizar la linea de tiempo.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gantt-table-module" aria-labelledby="ganttIssueTableTitle">
+          <div class="gantt-table-header">
+            <div>
+              <h3 id="ganttIssueTableTitle">Seguimiento diario</h3>
+              <p id="ganttIssueTableCounter">Sin datos cargados.</p>
+            </div>
+            <button class="export-button module-export-button" type="button" data-export-module="dailyTracking" aria-label="Exportar seguimiento diario a Excel" title="Exportar seguimiento diario a Excel">⇩</button>
+          </div>
+
+          <div id="ganttIssueTable" class="gantt-ticket-table" role="table" aria-label="Detalle de tickets visibles en Gantt"></div>
+        </div>
+
+        <div class="gantt-table-module" aria-labelledby="missingEstimateTableTitle">
+          <div class="gantt-table-header">
+            <div>
+              <h3 id="missingEstimateTableTitle">Pendientes por estimar</h3>
+              <p id="missingEstimateTableCounter">Sin datos cargados.</p>
+            </div>
+            <button class="export-button module-export-button" type="button" data-export-module="missingEstimates" aria-label="Exportar pendientes por estimar a Excel" title="Exportar pendientes por estimar a Excel">⇩</button>
+          </div>
+
+          <div id="missingEstimateTable" class="gantt-ticket-table missing-estimate-table" role="table" aria-label="Responsables con tickets pendientes por estimar"></div>
+        </div>
+      </section>
+      </section>
+
+      <section id="pertView" class="view-page" hidden>
+        <section class="panel pert-panel" aria-labelledby="pertTitle">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Red de dependencias</p>
+              <h2 id="pertTitle">Diagrama PERT</h2>
+              <p id="pertDescription">Visualiza actividades vinculadas e identifica cuellos de botella.</p>
+            </div>
+            <div class="filter-actions">
+              <span id="pertCounter" class="badge">Sin datos</span>
+              <button class="export-button module-export-button" type="button" data-export-module="pert" aria-label="Exportar PERT a Excel" title="Exportar PERT a Excel">⇩</button>
+            </div>
+          </div>
+
+          <div class="pert-legend" aria-label="Leyenda del diagrama PERT">
+            <span><i class="pert-legend-dot status-todo"></i> Por hacer</span>
+            <span><i class="pert-legend-dot status-progress"></i> En curso</span>
+            <span><i class="pert-legend-dot status-blocked"></i> Pendiente/Bloqueado</span>
+            <span><i class="pert-legend-dot status-done"></i> Finalizada</span>
+            <span><i class="pert-legend-dot pert-bottleneck-dot"></i> Cuello de botella</span>
+          </div>
+
+          <div id="pertEmptyState" class="empty-state">
+            <strong>Carga inicial</strong>
+            <span>Consulta Jira para construir la red de dependencias.</span>
+          </div>
+
+          <div id="pertContent" class="pert-content" hidden>
+            <div class="pert-summary-grid">
+              <article>
+                <span>Actividades vinculadas</span>
+                <strong id="pertNodeCount">0</strong>
+              </article>
+              <article>
+                <span>Dependencias</span>
+                <strong id="pertLinkCount">0</strong>
+              </article>
+              <article>
+                <span>Cuellos de botella</span>
+                <strong id="pertBottleneckCount">0</strong>
+              </article>
+            </div>
+
+            <div class="pert-scroll" tabindex="0" aria-label="Diagrama PERT con desplazamiento horizontal">
+              <div id="pertGraph" class="pert-graph"></div>
+            </div>
+
+            <section class="pert-bottleneck-module" aria-labelledby="pertBottleneckTitle">
+              <div class="gantt-table-header">
+                <div>
+                  <h3 id="pertBottleneckTitle">Cuellos de botella detectados</h3>
+                  <p>Actividades que pueden afectar el flujo por bloqueos, vencimientos o dependencias aguas abajo.</p>
+                </div>
+              </div>
+              <div id="pertBottleneckList" class="pert-bottleneck-list"></div>
+            </section>
+          </div>
+        </section>
+      </section>
+
+      <section id="analyticsView" class="view-page" hidden>
+        <section class="panel analytics-panel" aria-labelledby="analyticsTitle">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Panel ejecutivo</p>
+              <h2 id="analyticsTitle">Tablero ejecutivo Jira</h2>
+              <p>Indicadores estrategicos para confiabilidad, precision de estimacion y envejecimiento del trabajo.</p>
+            </div>
+            <span id="analyticsCounter" class="badge">Sin datos</span>
+          </div>
+
+          <div id="analyticsEmptyState" class="empty-state">
+            <strong>Carga inicial</strong>
+            <span>Consulta Jira para calcular los KPIs ejecutivos.</span>
+          </div>
+
+          <div id="analyticsContent" class="analytics-content" hidden>
+            <div class="kpi-grid">
+              <article class="kpi-card">
+                <button class="export-button" type="button" data-export-kpi="accuracy" aria-label="Exportar precision de estimacion a Excel" title="Exportar a Excel">⇩</button>
+                <button class="info-button" type="button" data-kpi-info="accuracy" aria-label="Informacion de precision de estimacion">i</button>
+                <button class="detail-button" type="button" data-kpi-detail="accuracy" aria-label="Ver detalle de precision de estimacion">+</button>
+                <span class="kpi-label">Precision de estimacion</span>
+                <strong id="kpiAccuracy">0%</strong>
+                <small id="kpiAccuracyMeta">Sin estimacion</small>
+                <p id="info-accuracy" class="kpi-info" hidden>Tiempo registrado / estimacion original. Sirve para evaluar calidad de planeacion y madurez de estimacion.</p>
+                <div id="accuracyDetails" class="kpi-detail-list" hidden></div>
+              </article>
+
+              <article class="kpi-card daily-load-kpi">
+                <button class="export-button" type="button" data-export-kpi="dailyLoad" aria-label="Exportar carga diaria de recursos a Excel" title="Exportar a Excel">⇩</button>
+                <button class="info-button" type="button" data-kpi-info="dailyLoad" aria-label="Informacion de carga diaria de recursos">i</button>
+                <button class="detail-button" type="button" data-kpi-detail="dailyLoad" aria-label="Ver detalle de carga diaria de recursos">+</button>
+                <span class="kpi-label">Carga diaria de recursos</span>
+                <strong id="kpiDailyLoad">0%</strong>
+                <small id="kpiDailyLoadMeta">Sin carga planificada</small>
+                <div class="daily-load-summary">
+                  <span><b id="dailyOverloadedCount">0</b> sobrecargados</span>
+                  <span><b id="dailyHealthyCount">0</b> saludables</span>
+                  <span><b id="dailyAvailableCount">0</b> con capacidad libre</span>
+                </div>
+                <p id="info-dailyLoad" class="kpi-info" hidden>Distribuye la estimacion original entre los dias laborales de cada ticket y compara la carga diaria por persona contra una capacidad estandar de 8 horas.</p>
+              </article>
+
+            </div>
+
+            <div id="dailyLoadDetails" class="analytics-grid" hidden>
+              <article class="analytics-card daily-load-card">
+                <button class="export-button" type="button" data-export-kpi="dailyLoad" aria-label="Exportar carga diaria de recursos a Excel" title="Exportar a Excel">⇩</button>
+                <button class="info-button" type="button" data-kpi-info="dailyLoadWidget" aria-label="Informacion de Daily Resource Load">i</button>
+                <div class="analytics-card-header">
+                  <div>
+                    <h3>Carga diaria de recursos</h3>
+                    <p>Heatmap y tabla ejecutiva de utilizacion diaria por persona.</p>
+                  </div>
+                  <label class="toggle compact-toggle">
+                    <input id="dailyExcludeDoneFilter" type="checkbox" checked>
+                    <span>Excluir finalizadas</span>
+                  </label>
+                </div>
+                <p id="info-dailyLoadWidget" class="kpi-info" hidden>Se calcula tomando cada ticket activo con responsable, fecha inicio, fecha fin y estimacion original. Primero cuenta los dias laborales entre inicio y fin, excluyendo sabados y domingos. Luego distribuye la estimacion original en horas entre esos dias: carga diaria del ticket = estimacion original / dias laborales. Finalmente suma la carga diaria de todos los tickets concurrentes por persona y compara contra una capacidad estandar de 8h: % carga = horas asignadas / 8h x 100.</p>
+                <div id="dailyLoadHeatmap" class="daily-heatmap"></div>
+                <div id="dailyLoadTable" class="daily-load-table"></div>
+              </article>
+            </div>
+
+            <div class="analytics-grid">
+              <article class="analytics-card">
+                <button class="export-button" type="button" data-export-kpi="agingBuckets" aria-label="Exportar cubos de envejecimiento a Excel" title="Exportar a Excel">⇩</button>
+                <button class="info-button" type="button" data-kpi-info="agingBuckets" aria-label="Informacion de cubos de envejecimiento">i</button>
+                <h3>Cubos de envejecimiento</h3>
+                <p id="info-agingBuckets" class="kpi-info" hidden>Se calcula con tickets abiertos usando: hoy menos fecha de inicio. Los cubos agrupan 0-7 dias como normal, 7-30 dias como atencion y mas de 30 dias como riesgo.</p>
+                <div id="agingBuckets" class="bucket-grid"></div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js?v=20260601-dependency-anchors"></script>
+  </body>
+</html>
