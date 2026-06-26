@@ -761,6 +761,13 @@
           </button>
 
           <div id="configContent" class="config-content">
+            <div id="staticHostNotice" class="static-host-notice" role="note" hidden>
+              <strong>Estás viendo la versión publicada (GitHub Pages).</strong>
+              La conexión en vivo con Jira necesita el proxy local porque Jira bloquea las llamadas directas del navegador (CORS).
+              Para datos reales, clona el repo y ejecuta <code>node server.js</code>.
+              Mientras tanto, prueba el <strong>Modo Demo</strong> más abajo — funciona aquí sin configurar nada.
+            </div>
+
             <form id="jiraForm" class="config-grid">
               <label>
                 URL base de Jira

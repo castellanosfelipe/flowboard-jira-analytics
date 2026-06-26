@@ -511,9 +511,23 @@ function initApp() {
   applyLanguage(state.language);
   restoreConnectionData();
   bindEvents();
+  maybeShowStaticHostNotice();
   populateFilterOptions([]);
   renderEmptyState(t("initialLoad"), t("initialGanttDescription"));
   renderPertEmptyState(t("initialLoad"), t("pertInitialDescription"));
+}
+
+// En hosting estático (GitHub Pages) no hay proxy local, así que Jira en vivo
+// no funciona. Avisamos y dirigimos al usuario al modo demo.
+function isStaticHost() {
+  const host = window.location.hostname;
+  return !(host === "localhost" || host === "127.0.0.1" || host === "" || host === "0.0.0.0");
+}
+
+function maybeShowStaticHostNotice() {
+  if (!isStaticHost()) return;
+  const notice = document.querySelector("#staticHostNotice");
+  if (notice) notice.hidden = false;
 }
 
 function bindEvents() {

@@ -153,6 +153,19 @@ open http://localhost:4173
 
 ---
 
+## Demo en línea (GitHub Pages)
+
+La versión publicada en GitHub Pages funciona en **modo demo**: abre **Settings → Modo Demo** y explora las 25 issues de ejemplo con todas las funcionalidades, sin instalar nada ni introducir credenciales.
+
+> **¿Por qué la demo en Pages no se conecta a Jira en vivo?**
+> Jira Cloud **bloquea las llamadas directas desde el navegador** (CORS) por seguridad. Por eso FlowBoard incluye `server.js`, un proxy que añade la autenticación y habla con Jira del lado del servidor. GitHub Pages es *hosting estático*: sirve archivos pero no puede ejecutar ese proxy.
+>
+> **Para datos reales de tu Jira**, clona el repo y ejecuta `node server.js` en local (ver *Inicio rápido*). Es la misma app, con el proxy activo.
+
+**Publicar tu propia demo:** en el repo, ve a *Settings → Pages*, selecciona la rama `main` y carpeta `/ (root)`. El `.nojekyll` ya incluido garantiza que GitHub sirva los archivos tal cual.
+
+---
+
 ## Exportaciones disponibles
 
 Cada vista incluye botones de descarga directa a `.xls`:
