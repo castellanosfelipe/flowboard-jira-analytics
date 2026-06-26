@@ -6,9 +6,9 @@ const BATCH_SIZE = 90;
 const AGING_BUCKET_PAGE_SIZE = 10;
 const PERT_MAX_NODES = 180;
 const PERT_NODE_WIDTH = 248;
-const PERT_NODE_HEIGHT = 118;
-const PERT_COLUMN_GAP = 112;
-const PERT_ROW_GAP = 24;
+const PERT_NODE_HEIGHT = 158;
+const PERT_COLUMN_GAP = 120;
+const PERT_ROW_GAP = 20;
 const ZOOM_LEVELS = ["today", "week", "month", "quarter"];
 const CONNECTION_STORAGE_KEY = "jira-gantt-connection";
 const TOKEN_SESSION_KEY = "jira-gantt-session-token";
@@ -2228,8 +2228,17 @@ function renderPertNode(node) {
     "pert-node",
     issue.statusClass,
     issue.isEpic ? "is-epic" : "",
-    node.metrics.isBottleneck ? "is-bottleneck" : ""
+    node.metrics.isBottleneck ? "pert-bottleneck" : ""
   ].filter(Boolean).join(" ");
+
+  const dueDateLabel = issue.endDate ? formatTableDate(issue.endDate) : "";
+  const dueDateClass = issue.isOverdue ? "pert-date-overdue" : issue.isDueSoon ? "pert-date-soon" : "";
+  const depsOut = node.metrics.outgoingCount;
+  const depsIn  = node.metrics.incomingCount;
+  const depLabel = [
+    depsOut ? `${depsOut} ${state.language === "en" ? "blocker" : "bloquea"}${depsOut > 1 ? "s" : ""}` : "",
+    depsIn  ? `${depsIn} ${state.language === "en" ? "blocked-by" : "bloqueado por"}` : ""
+  ].filter(Boolean).join(" · ");
 
   return `
     <article class="${classes}" data-pert-node-key="${escapeHtml(issue.key)}" style="left: ${node.x}px; top: ${node.y}px;">
@@ -2240,11 +2249,15 @@ function renderPertNode(node) {
         ${node.metrics.isBottleneck ? `<span class="pert-risk-pill">${escapeHtml(state.language === "en" ? "Bottleneck" : "Cuello de botella")}</span>` : ""}
       </header>
       <h4 title="${escapeHtml(issue.title)}">${escapeHtml(issue.title)}</h4>
-      <p title="${escapeHtml(issue.assignee)}">${escapeHtml(issue.assignee)}</p>
+      <p class="pert-node-assignee" title="${escapeHtml(issue.assignee)}">${escapeHtml(issue.assignee)}</p>
       <footer>
         <span class="status-pill ${issue.statusClass}" title="${escapeHtml(issue.status)}">${escapeHtml(issue.status)}</span>
-        <small title="${escapeHtml(getOriginalEstimateTitle(issue))}">${escapeHtml(issue.originalEstimate.label)}</small>
+        <span class="pert-node-meta">
+          ${dueDateLabel ? `<span class="pert-node-date ${dueDateClass}" title="${escapeHtml(state.language === "en" ? "Due date" : "Vencimiento")}: ${escapeHtml(dueDateLabel)}">⏱ ${escapeHtml(dueDateLabel)}</span>` : ""}
+          <small title="${escapeHtml(getOriginalEstimateTitle(issue))}">${escapeHtml(issue.originalEstimate.label)}</small>
+        </span>
       </footer>
+      ${depLabel ? `<div class="pert-dep-label">${escapeHtml(depLabel)}</div>` : ""}
     </article>
   `;
 }
