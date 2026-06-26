@@ -926,9 +926,14 @@ async function handleRefresh() {
 async function loadDemoData() {
   setLoading(true, "Cargando datos de demo...");
   try {
-    const response = await fetch("/api/demo");
-    if (!response.ok) throw new Error("No se pudo cargar el demo desde el servidor local.");
-    const data = await response.json();
+    // En GitHub Pages no hay servidor: usamos los datos embebidos (demo-data.js).
+    // En local con `node server.js` también funcionan, sin necesidad de red.
+    let data = (typeof window !== "undefined" && window.DEMO_DATA) ? window.DEMO_DATA : null;
+    if (!data) {
+      const response = await fetch("/api/demo");
+      if (!response.ok) throw new Error("No se pudo cargar el demo. Recarga la página con Cmd/Ctrl+Shift+R.");
+      data = await response.json();
+    }
     const issues = Array.isArray(data.issues) ? data.issues : [];
     const normalizedIssues = normalizeIssues(issues);
     state.normalizedIssues = normalizedIssues;

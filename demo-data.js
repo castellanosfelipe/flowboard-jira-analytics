@@ -503,7 +503,7 @@ const ISSUES = [
   }
 ];
 
-module.exports = {
+const DEMO_DATA = {
   expand: "",
   startAt: 0,
   maxResults: 100,
@@ -513,3 +513,11 @@ module.exports = {
   issues: ISSUES,
   message: `Demo: ${ISSUES.length} issues del proyecto ENG — Sprint 15`
 };
+
+// UMD: funciona con require() en el servidor Node y como global en el navegador
+// (GitHub Pages no tiene servidor, así que el demo se carga desde esta variable).
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = DEMO_DATA;
+} else if (typeof window !== "undefined") {
+  window.DEMO_DATA = DEMO_DATA;
+}
