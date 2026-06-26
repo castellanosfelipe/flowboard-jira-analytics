@@ -6,7 +6,7 @@
 
 Conecta tu workspace en 30 segundos. Ve en segundos lo que en Jira tarda horas de informes.
 
-![FlowBoard — Tour de la plataforma](docs/videos/flow3-tour-plataforma.gif)
+![FlowBoard — Tour completo de la plataforma](docs/videos/demo-tour-plataforma.gif)
 
 [![Node.js](https://img.shields.io/badge/Node.js-stdlib_only-339933?style=flat-square&logo=node.js)](https://nodejs.org)
 [![Jira Cloud](https://img.shields.io/badge/Jira-Cloud_API-0052CC?style=flat-square)](https://developer.atlassian.com/cloud/jira/platform/rest/v3/)
@@ -28,7 +28,7 @@ FlowBoard es un proxy local + dashboard que lee tu Jira directamente y convierte
 
 ## Lo que puedes hacer con FlowBoard
 
-### Entiende el estado real de tu sprint en 10 segundos
+### 1. Entiende el estado real de tu sprint en 10 segundos
 
 El **Panel Ejecutivo** convierte tus issues de Jira en tres métricas que importan:
 
@@ -36,13 +36,23 @@ El **Panel Ejecutivo** convierte tus issues de Jira en tres métricas que import
 |---|---|---|
 | **Precisión de estimación** | `horas_gastadas / horas_estimadas` (incluye subtareas) | ¿Tu equipo estima bien? ¿Se compromete a lo que puede entregar? |
 | **Carga diaria de recursos** | Estimación original ÷ días laborales, por persona, vs 8h/día | ¿Quién está sobrecargado? ¿Quién tiene capacidad libre? |
-| **Cubos de envejecimiento** | Issues activos por antigüedad: 0-7d / 7-30d / 30+d | ¿Qué tickets llevan semanas estancados y nadie está mirando? |
+| **Cubos de envejecimiento** | Issues activos por antigüedad: 0–7d · 7–30d · 30+d | ¿Qué tickets llevan semanas estancados y nadie está mirando? |
 
 ![Overview — Panel ejecutivo con KPIs](docs/screenshots/overview-dashboard.png)
 
 ---
 
-### Ve el timeline de tu sprint sin Excel
+### 2. Conecta Jira en 30 segundos, sin instalar nada
+
+Pega tu URL, email y API Token de Jira. Escribe cualquier JQL. Click en **Consultar Jira** — los datos aparecen al instante.
+
+![Conectar Jira y ver métricas por primera vez](docs/videos/demo-conectar-jira.gif)
+
+El token solo vive en memoria de sesión. FlowBoard es **solo lectura** — nunca modifica datos en Jira.
+
+---
+
+### 3. Ve el timeline de tu sprint sin Excel
 
 **Sprint Analytics** renderiza un Gantt con todos tus issues, agrupable por responsable o por issue principal, con fechas de inicio/fin calculadas automáticamente desde Jira.
 
@@ -50,13 +60,13 @@ El **Panel Ejecutivo** convierte tus issues de Jira en tres métricas que import
 - Expande issues para ver sus subtareas anidadas
 - Descarga el detalle completo a `.xls` con un click
 
-![Sprint Analytics — Gantt view](docs/screenshots/sprint-analytics-gantt.png)
+![Sprint Analytics — Vista Gantt](docs/screenshots/sprint-analytics-gantt.png)
 
 ---
 
-### Identifica qué está bloqueando el sprint antes de que sea tarde
+### 4. Identifica qué está bloqueando el sprint antes de que sea tarde
 
-**Cycle Time & Flow** construye el grafo de dependencias PERT de todos tus issues y calcula un score de cuello de botella por cada nodo:
+**Cycle Time & Flow** construye el grafo de dependencias PERT de todos tus issues y calcula un score de cuello de botella por nodo:
 
 ```
 Score = (dependencias_salientes × 16)
@@ -69,57 +79,45 @@ Score = (dependencias_salientes × 16)
 
 Los 5 issues con mayor score aparecen destacados en rojo. Son los que, si se atrasan, se llevan el sprint.
 
-![Cycle Time & Flow — Grafo PERT](docs/screenshots/cycle-time-dependencias.png)
+![Cycle Time & Flow — Grafo de dependencias PERT](docs/screenshots/cycle-time-dependencias.png)
 
 ---
 
-### Conecta Jira una vez. Consulta cuando quieras.
+### 5. Filtra por lo que importa — en todas las vistas a la vez
 
-El formulario de **Settings** guarda tu URL y usuario en el navegador. El token API solo vive en memoria durante la sesión (nunca se persiste). Puedes usar cualquier JQL — el mismo que usarías en Jira directamente.
+Los filtros globales aplican simultáneamente a Overview, Gantt y PERT. Agrupa por responsable, filtra solo vencidas, excluye finalizadas. Sin recargar, sin esperar.
 
-![Configuración — Conexión Jira](docs/screenshots/configuracion-jira.png)
-
----
-
-### Filtra por lo que importa. En tiempo real.
-
-Los **filtros globales** aplican a todas las vistas simultáneamente:
-
-- Por responsable, estado, épica, sprint, prioridad
-- Por rango de fechas
-- Por texto libre en cualquier campo
-
-No hay "Buscar" — los filtros se aplican al instante mientras escribes.
-
-![Filtros globales — Panel expandido](docs/screenshots/filtros-globales.png)
+![Filtros globales en acción](docs/videos/demo-filtros-globales.gif)
 
 ---
 
-### Modo claro para presentaciones. Modo oscuro para trabajar.
+### 6. Maximiza el espacio de trabajo colapsando el sidebar
 
-![Overview — Tema claro](docs/screenshots/overview-tema-claro.png)
+Un click en el sidebar toggle oculta la navegación y libera todo el ancho para el Gantt o el grafo PERT.
+
+![Sidebar colapsable para maximizar espacio](docs/videos/demo-sidebar-colapsar.gif)
 
 ---
 
-## Flujos principales
+### 7. Interfaz en español e inglés — cambia en tiempo real
 
-### Conectar Jira y ver tus métricas por primera vez
+Toda la interfaz cambia de idioma al instante, sin recargar. Útil para equipos mixtos o para compartir pantalla con stakeholders internacionales.
 
-![Flow 1 — Conectar Jira en 30 segundos](docs/videos/flow1-conectar-jira.gif)
+![Cambio de idioma ES ↔ EN en tiempo real](docs/videos/demo-bilingual-es-en.gif)
 
-1. Abre **Settings** en el sidebar
-2. Pega tu URL de Jira, email, y API Token
-3. Escribe tu JQL (ej: `project = ENG AND sprint in openSprints()`)
-4. Click en **Consultar Jira** — los KPIs aparecen en segundos
+---
 
-### Analizar un sprint en el Gantt
+### 8. Modo claro para presentaciones. Modo oscuro para trabajar.
 
-![Flow 2 — Sprint Analytics con Gantt](docs/videos/flow2-sprint-analytics.gif)
+![Overview en tema claro](docs/screenshots/overview-tema-claro.png)
 
-1. Navega a **Sprint Analytics**
-2. Agrupa por responsable para ver carga individual
-3. Ajusta el zoom de fechas al sprint actual
-4. Exporta a `.xls` para compartir con stakeholders
+---
+
+### 9. Configura la conexión una vez y reutilízala
+
+URL y usuario se guardan en el navegador. Cambia el JQL según el sprint o proyecto sin volver a autenticarte.
+
+![Configuración de conexión Jira](docs/screenshots/configuracion-jira.png)
 
 ---
 
@@ -129,7 +127,7 @@ No hay "Buscar" — los filtros se aplican al instante mientras escribes.
 
 ```bash
 # 1. Clona el repo
-git clone <repo-url>
+git clone https://github.com/castellanosfelipe/flowboard-jira-analytics.git
 cd flowboard-jira-analytics
 
 # 2. Arranca el proxy local
@@ -148,20 +146,18 @@ open http://localhost:4173
 2. Crea un token (nombre sugerido: `flowboard-local`)
 3. Cópialo — solo se muestra una vez
 
-> **Seguridad:** El proxy local actúa como intermediario entre tu navegador y la API de Jira. El token viaja de tu navegador al proxy local (localhost), nunca a internet. FlowBoard es **solo lectura** — nunca modifica datos en Jira.
-
 ---
 
 ## Exportaciones disponibles
 
 Cada vista incluye botones de descarga directa a `.xls`:
 
-| Archivo | Contenido |
+| Archivo generado | Contenido |
 |---|---|
 | `gantt-detalle` | Timeline con estimaciones, fechas, responsables |
 | `seguimiento-diario` | Horas planificadas vs gastadas por día |
-| `pendientes-por-estimar` | Issues sin originalEstimate |
-| `pert-cuellos-de-botella` | Score y dependencias por issue |
+| `pendientes-por-estimar` | Issues sin `originalEstimate` |
+| `pert-cuellos-de-botella` | Score de bottleneck y dependencias por issue |
 | `precision-estimacion` | KPI de exactitud por persona |
 | `carga-diaria-recursos` | Utilización diaria vs capacidad 8h |
 | `cubos-envejecimiento` | Issues agrupados por antigüedad |
@@ -182,10 +178,7 @@ server.js  ← Node.js stdlib only (http, https, fs, path)
 api.atlassian.com  ← Jira Cloud REST API v3
 ```
 
-- Sin framework. Sin bundler. Sin transpilación.
-- El `server.js` es un proxy de ~55 líneas usando solo módulos nativos de Node.
-- Todo el estado vive en memoria del navegador (sessionStorage para el token).
-- Compatible con cualquier Jira Cloud con acceso por API Token.
+Sin framework. Sin bundler. Sin transpilación. El `server.js` usa solo módulos nativos de Node.
 
 ---
 
@@ -220,11 +213,3 @@ Un equipo que usa FlowBoard debería poder responder estas preguntas en menos de
 ## Licencia
 
 MIT — úsalo, modifícalo, inclúyelo en tus herramientas internas.
-
----
-
-<div align="center">
-
-Construido con Node.js nativo · Jira Cloud API · Playwright · ffmpeg
-
-</div>
