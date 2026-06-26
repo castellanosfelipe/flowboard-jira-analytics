@@ -1,400 +1,819 @@
 <!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Jira Gantt</title>
-    <link rel="stylesheet" href="styles.css?v=20260601-pert">
-  </head>
-  <body>
-    <main class="page">
-      <header class="app-header">
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlowBoard — Jira Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     TOPBAR
+════════════════════════════════════════════════════ -->
+<header class="topbar" role="banner">
+  <div class="topbar-start">
+    <button class="sidebar-toggle" id="sidebarToggle" type="button"
+            aria-label="Colapsar/expandir sidebar" aria-controls="sidebar" aria-expanded="true">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <rect x="2" y="3" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+        <rect x="2" y="7.25" width="9" height="1.5" rx="0.75" fill="currentColor"/>
+        <rect x="2" y="11.5" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <a class="product-brand" href="#" aria-label="FlowBoard inicio" tabindex="-1">
+      <svg class="brand-icon" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M11 2.5L19.5 7v8L11 19.5 2.5 15V7L11 2.5Z"
+              stroke="currentColor" stroke-width="1.4" fill="none"/>
+        <path d="M11 6.5L15.5 9v5L11 16.5 6.5 14V9L11 6.5Z"
+              fill="currentColor" opacity="0.35"/>
+        <circle cx="11" cy="11" r="2" fill="currentColor"/>
+      </svg>
+      <span class="brand-name">FlowBoard</span>
+    </a>
+
+    <div class="topbar-divider-v" aria-hidden="true"></div>
+
+    <div class="workspace-chip" id="workspaceChip" title="Workspace Jira conectado" aria-live="polite">
+      <span class="workspace-dot" id="workspaceDot" aria-hidden="true"></span>
+      <span class="workspace-name" id="workspaceName">Sin conexión</span>
+    </div>
+  </div>
+
+  <div class="topbar-center">
+    <span class="topbar-result-label" id="resultCounter">Sin datos cargados.</span>
+  </div>
+
+  <div class="topbar-end">
+    <div class="sync-status" id="syncStatus" aria-live="polite" title="Estado de sincronización">
+      <svg class="sync-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M6 3.5v2.5l1.5 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+      </svg>
+      <span class="sync-label" id="syncLabel">Sin datos</span>
+    </div>
+
+    <div class="topbar-divider-v" aria-hidden="true"></div>
+
+    <div class="lang-switcher" role="group" aria-label="Idioma">
+      <button class="lang-btn active" type="button" data-language-option="es" aria-pressed="true">ES</button>
+      <button class="lang-btn" type="button" data-language-option="en" aria-pressed="false">EN</button>
+    </div>
+
+    <div class="theme-switcher" role="group" aria-label="Tema">
+      <button class="theme-btn" type="button" data-theme-option="light" aria-pressed="false"
+              aria-label="Tema claro" title="Tema claro">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+          <circle cx="6.5" cy="6.5" r="2.5" fill="currentColor"/>
+          <path d="M6.5 1v1.5M6.5 10.5V12M1 6.5h1.5M10.5 6.5H12M2.697 2.697l1.06 1.06M9.243 9.243l1.06 1.06M10.303 2.697l-1.06 1.06M3.757 9.243l-1.06 1.06"
+                stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="theme-btn active" type="button" data-theme-option="dark" aria-pressed="true"
+              aria-label="Tema oscuro" title="Tema oscuro">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+          <path d="M11.5 8A6 6 0 0 1 5 1.5a5.5 5.5 0 1 0 6.5 6.5z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="topbar-divider-v" aria-hidden="true"></div>
+
+    <button class="cta-btn" id="searchButton" type="button" aria-label="Consultar Jira" title="Consultar Jira">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+        <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M8.5 8.5L11 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      Consultar Jira
+    </button>
+
+    <button class="icon-btn" id="refreshButton" type="button" aria-label="Refrescar datos" title="Refrescar datos">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+        <path d="M12 2.5v3.5h-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11.5 6C10.9 3.8 8.9 2.2 6.5 2.2A5 5 0 0 0 2 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M2 11.5V8H5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2.5 8c.6 2.2 2.6 3.8 5 3.8A5 5 0 0 0 12 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Legacy elements required by existing JS (hidden from view) -->
+<div class="js-compat-layer" aria-hidden="true">
+  <button id="ganttViewButton" type="button" tabindex="-1"></button>
+  <button id="pertViewButton" type="button" tabindex="-1"></button>
+  <button id="analyticsViewButton" type="button" tabindex="-1"></button>
+  <p class="eyebrow"></p>
+  <p class="subtitle"></p>
+  <div class="header-actions"></div>
+  <nav class="view-tabs" aria-label=""></nav>
+  <div class="theme-switcher-legacy"><span></span></div>
+  <div class="language-switcher"><span></span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     APP BODY (sidebar + main)
+════════════════════════════════════════════════════ -->
+<div class="app-body">
+
+  <!-- ─────────────────────────────────────────────
+       SIDEBAR
+  ──────────────────────────────────────────────── -->
+  <nav class="sidebar" id="sidebar" aria-label="Navegación principal">
+    <div class="sidebar-nav-list">
+
+      <span class="nav-section-label">Análisis</span>
+
+      <button class="nav-item active" type="button" data-nav-view="analytics" id="navOverview">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="2" y="2" width="5.2" height="5.2" rx="1.2" fill="currentColor"/>
+          <rect x="8.8" y="2" width="5.2" height="5.2" rx="1.2" fill="currentColor" opacity="0.5"/>
+          <rect x="2" y="8.8" width="5.2" height="5.2" rx="1.2" fill="currentColor" opacity="0.5"/>
+          <rect x="8.8" y="8.8" width="5.2" height="5.2" rx="1.2" fill="currentColor" opacity="0.75"/>
+        </svg>
+        <span class="nav-label">Overview</span>
+      </button>
+
+      <button class="nav-item" type="button" data-nav-view="teamHealth" id="navTeamHealth">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="6" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+          <circle cx="11.5" cy="5.5" r="2" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
+          <path d="M1.5 14c0-2.485 2.015-4.5 4.5-4.5S10.5 11.515 10.5 14"
+                stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M10.5 11c.9-.65 2.5-.35 3 2" stroke="currentColor"
+                stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+        <span class="nav-label">Team Health</span>
+        <span class="nav-badge-coming" aria-label="Próximamente">soon</span>
+      </button>
+
+      <button class="nav-item" type="button" data-nav-view="gantt" id="navSprint">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="2" y="4" width="8" height="2.5" rx="1.25" fill="currentColor"/>
+          <rect x="5" y="9.5" width="9" height="2.5" rx="1.25" fill="currentColor" opacity="0.6"/>
+          <circle cx="12.5" cy="5.25" r="1.5" fill="currentColor" opacity="0.35"/>
+          <circle cx="3.5" cy="10.75" r="1.5" fill="currentColor" opacity="0.35"/>
+        </svg>
+        <span class="nav-label">Sprint Analytics</span>
+      </button>
+
+      <button class="nav-item" type="button" data-nav-view="pert" id="navFlow">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="3" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="4" r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="12" r="1.5" fill="currentColor" opacity="0.6"/>
+          <circle cx="13" cy="8" r="1.5" fill="currentColor"/>
+          <path d="M4.5 8h2M9.5 4.5l2 3M9.5 11.5l2-3"
+                stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M4.5 7.5l2.5-3M4.5 8.5l2.5 3"
+                stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+        <span class="nav-label">Cycle Time & Flow</span>
+      </button>
+
+      <button class="nav-item" type="button" data-nav-view="epics" id="navEpics">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="5" y="3" width="7" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/>
+          <path d="M3 5l2 0M3 8l2 0M3 11l2 0" stroke="currentColor" stroke-width="1.3"
+                stroke-linecap="round" opacity="0.5"/>
+          <path d="M7 6h3M7 8.5h3M7 11h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Epics & Roadmap</span>
+        <span class="nav-badge-coming" aria-label="Próximamente">soon</span>
+      </button>
+
+      <button class="nav-item" type="button" data-nav-view="workDist" id="navWorkDist">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="5.5" r="2.8" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M2.5 14c0-3.038 2.462-5.5 5.5-5.5S13.5 10.962 13.5 14"
+                stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Work Distribution</span>
+        <span class="nav-badge-coming" aria-label="Próximamente">soon</span>
+      </button>
+
+      <div class="nav-divider" role="separator" aria-hidden="true"></div>
+
+      <button class="nav-item" type="button" data-nav-view="settings" id="navSettings">
+        <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.08 3.08l1.06 1.06M11.86 11.86l1.06 1.06M12.92 3.08l-1.06 1.06M4.14 11.86l-1.06 1.06"
+                stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
+        </svg>
+        <span class="nav-label">Settings</span>
+      </button>
+
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="jira-status-chip" id="jiraConnectionChip" aria-live="polite">
+        <span class="jira-conn-dot" id="connDot" aria-hidden="true"></span>
+        <span class="jira-conn-label" id="connLabel">Sin conexión</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─────────────────────────────────────────────
+       MAIN AREA
+  ──────────────────────────────────────────────── -->
+  <div class="main-area" role="main">
+
+    <!-- Loading / Error banners -->
+    <section id="messageArea" class="message-area" aria-live="polite">
+      <div id="loadingBox" class="loading-banner" hidden></div>
+      <div id="errorBox" class="error-banner" hidden></div>
+    </section>
+
+    <!-- ─── FILTERS BAR ──────────────────────────── -->
+    <div class="filters-bar">
+      <div class="filters-bar-header">
+        <span id="activeFilterBadge" class="filter-count-chip">0 filtros activos</span>
+        <div class="filters-bar-actions">
+          <button id="clearFiltersButton" class="ghost-btn" type="button">Limpiar filtros</button>
+          <button id="filtersToggle" class="ghost-btn filters-toggle-btn" type="button"
+                  aria-expanded="false" aria-controls="filtersContent" aria-label="Mostrar filtros">
+            <span class="panel-toggle-icon" aria-hidden="true">+</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="filtersContent" class="filters-panel-body" hidden>
+        <div class="filters-grid">
+          <label class="filter-field search-field">
+            Busqueda rapida
+            <input id="quickSearch" type="search"
+                   placeholder="Buscar por clave, tarea o texto parcial" autocomplete="off">
+          </label>
+
+          <fieldset class="checkbox-filter">
+            <legend>Proyecto</legend>
+            <div id="projectFilter" class="checkbox-options" aria-label="Filtrar por proyecto"></div>
+          </fieldset>
+
+          <fieldset class="checkbox-filter">
+            <legend>Usuario asignado</legend>
+            <div id="assigneeFilter" class="checkbox-options" aria-label="Filtrar por usuario asignado"></div>
+          </fieldset>
+
+          <fieldset class="checkbox-filter">
+            <legend>Ocultar usuarios</legend>
+            <div id="hiddenAssigneeFilter" class="checkbox-options"
+                 aria-label="Ocultar usuarios del Gantt y tablero ejecutivo"></div>
+          </fieldset>
+
+          <fieldset class="checkbox-filter">
+            <legend>Estado</legend>
+            <div id="statusFilter" class="checkbox-options" aria-label="Filtrar por estado"></div>
+          </fieldset>
+
+          <fieldset class="checkbox-filter">
+            <legend>Sprint</legend>
+            <div id="sprintFilter" class="checkbox-options" aria-label="Filtrar por sprint"></div>
+          </fieldset>
+
+          <div class="date-range-filter" data-date-range="gantt">
+            <button id="ganttDateRangeButton" class="date-range-button" type="button"
+                    data-date-range-toggle="gantt" aria-expanded="false" aria-controls="ganttDateRangePanel">
+              <span class="date-range-icon" aria-hidden="true">📅</span>
+              <span class="date-range-button-text">Rango de fecha</span>
+              <strong id="ganttDateRangeSummary">Todas las fechas</strong>
+            </button>
+            <div id="ganttDateRangePanel" class="date-range-panel" data-date-range-panel="gantt" hidden>
+              <label>
+                Desde
+                <input id="startDateFilter" type="date">
+              </label>
+              <label>
+                Hasta
+                <input id="endDateFilter" type="date">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <label class="toggle">
+            <input id="showSubtasksFilter" type="checkbox" checked>
+            <span>Mostrar subtareas</span>
+          </label>
+          <label class="toggle">
+            <input id="excludeDoneFilter" type="checkbox" checked>
+            <span>Excluir finalizadas</span>
+          </label>
+          <label class="toggle">
+            <input id="activeOnlyFilter" type="checkbox">
+            <span>Solo tareas activas</span>
+          </label>
+          <label class="toggle">
+            <input id="overdueOnlyFilter" type="checkbox">
+            <span>Solo vencidas</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         VIEW: OVERVIEW (Analytics / Executive KPIs)
+    ════════════════════════════════════════════ -->
+    <section id="analyticsView" class="view-page" aria-labelledby="analyticsViewTitle">
+      <div class="view-header">
         <div>
-          <p class="eyebrow">Linea de tiempo del proyecto</p>
-          <h1>Jira Gantt</h1>
-          <p class="subtitle">Consulta, filtra y visualiza tickets por usuario, tarea y subtarea.</p>
+          <p class="eyebrow">Panel ejecutivo</p>
+          <h1 class="view-title" id="analyticsViewTitle">Overview</h1>
+          <p class="view-subtitle">Indicadores estratégicos para confiabilidad, estimación y envejecimiento del trabajo.</p>
         </div>
+        <span id="analyticsCounter" class="data-badge">Sin datos</span>
+      </div>
 
-        <div class="header-actions" aria-label="Acciones principales">
-          <nav class="view-tabs" aria-label="Cambiar vista">
-            <button id="ganttViewButton" class="tab-button active" type="button">Gantt</button>
-            <button id="pertViewButton" class="tab-button" type="button">PERT</button>
-            <button id="analyticsViewButton" class="tab-button" type="button">Tablero ejecutivo</button>
-          </nav>
-          <div class="theme-switcher" role="group" aria-label="Seleccionar tema">
-            <span>Tema</span>
-            <button class="theme-icon-button" type="button" data-theme-option="light" aria-label="Tema claro" title="Tema claro">
-              <span aria-hidden="true">☀</span>
-            </button>
-            <button class="theme-icon-button" type="button" data-theme-option="dark" aria-label="Tema oscuro" title="Tema oscuro">
-              <span aria-hidden="true">☾</span>
-            </button>
-          </div>
-          <div class="language-switcher" role="group" aria-label="Cambiar idioma">
-            <span>Idioma</span>
-            <button class="language-button active" type="button" data-language-option="es" aria-label="Español" title="Español">ES</button>
-            <button class="language-button" type="button" data-language-option="en" aria-label="English" title="English">EN</button>
-          </div>
-          <button id="searchButton" class="primary-button icon-action-button" type="button" aria-label="Consultar Jira" title="Consultar Jira">
-            <span class="icon-search-jira" aria-hidden="true"></span>
-          </button>
-          <button id="refreshButton" class="secondary-button icon-action-button" type="button" aria-label="Refrescar datos" title="Refrescar datos">
-            <span aria-hidden="true">↻</span>
-          </button>
+      <div id="analyticsEmptyState" class="empty-state-view">
+        <div class="empty-icon-wrap" aria-hidden="true">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <rect x="4" y="8" width="44" height="36" rx="4" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.25"/>
+            <path d="M12 32l9-10 7 7 12-14" stroke="currentColor" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+            <circle cx="12" cy="32" r="2.5" fill="currentColor" opacity="0.5"/>
+            <circle cx="21" cy="22" r="2.5" fill="currentColor" opacity="0.5"/>
+            <circle cx="28" cy="29" r="2.5" fill="currentColor" opacity="0.5"/>
+            <circle cx="40" cy="18" r="2.5" fill="currentColor" opacity="0.5"/>
+          </svg>
         </div>
-      </header>
+        <strong class="empty-title">Sin datos cargados</strong>
+        <p class="empty-desc">Consulta Jira para calcular los KPIs ejecutivos.</p>
+      </div>
 
-      <section class="panel config-panel" aria-labelledby="configTitle">
-        <button id="configToggle" class="config-tab" type="button" aria-expanded="false" aria-controls="configContent">
-          <div>
-            <h2 id="configTitle">Configuracion de Jira</h2>
-            <p>Mostrar u ocultar credenciales, URL base y JQL.</p>
-          </div>
-          <span aria-hidden="true">+</span>
-        </button>
+      <div id="analyticsContent" class="analytics-content" hidden>
+        <div class="kpi-grid">
 
-        <div id="configContent" class="config-content" hidden>
-          <form id="jiraForm" class="config-grid">
-            <label>
-              URL base de Jira
-              <input id="jiraBaseUrl" type="url" placeholder="https://empresa.atlassian.net" required>
-            </label>
-
-            <label>
-              Email o usuario
-              <input id="jiraUser" type="text" placeholder="usuario@empresa.com" autocomplete="off" required>
-            </label>
-
-            <label>
-              API Token
-              <input id="jiraToken" type="password" placeholder="Ingresa el token manualmente" autocomplete="off" required>
-            </label>
-
-            <label class="wide">
-              JQL de busqueda
-              <input id="jiraJql" type="text" value="project = DES ORDER BY updated DESC" required>
-            </label>
-          </form>
-
-          <p class="connection-note">URL, usuario y JQL se guardan en este navegador. El token solo se recuerda durante la sesion local actual.</p>
-
-          <div class="security-warning" role="note">
-            <strong>Advertencia de seguridad:</strong>
-            este prototipo envia credenciales desde el navegador hacia un proxy local. En produccion, el token debe vivir solo en un backend seguro o secret manager.
-          </div>
-        </div>
-      </section>
-
-      <section class="panel filters-panel" aria-labelledby="filtersTitle">
-        <div class="config-tab filters-tab">
-          <div>
-            <h2 id="filtersTitle">Filtros</h2>
-            <p id="resultCounter">Sin datos cargados.</p>
-          </div>
-          <div class="filter-actions">
-            <span id="activeFilterBadge" class="badge">0 filtros activos</span>
-            <button id="clearFiltersButton" class="secondary-button" type="button">Limpiar filtros</button>
-            <button id="filtersToggle" class="panel-toggle-button" type="button" aria-expanded="false" aria-controls="filtersContent" aria-label="Mostrar filtros">
-              <span class="panel-toggle-icon" aria-hidden="true">+</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="filtersContent" class="config-content" hidden>
-          <div class="filters-grid">
-            <label class="search-field">
-              Busqueda rapida
-              <input id="quickSearch" type="search" placeholder="Buscar por clave, tarea o texto parcial" autocomplete="off">
-            </label>
-
-            <fieldset class="checkbox-filter">
-              <legend>Proyecto</legend>
-              <div id="projectFilter" class="checkbox-options" aria-label="Filtrar por proyecto"></div>
-            </fieldset>
-
-            <fieldset class="checkbox-filter">
-              <legend>Usuario asignado</legend>
-              <div id="assigneeFilter" class="checkbox-options" aria-label="Filtrar por usuario asignado"></div>
-            </fieldset>
-
-            <fieldset class="checkbox-filter">
-              <legend>Ocultar usuarios</legend>
-              <div id="hiddenAssigneeFilter" class="checkbox-options" aria-label="Ocultar usuarios del Gantt y tablero ejecutivo"></div>
-            </fieldset>
-
-            <fieldset class="checkbox-filter">
-              <legend>Estado</legend>
-              <div id="statusFilter" class="checkbox-options" aria-label="Filtrar por estado"></div>
-            </fieldset>
-
-            <fieldset class="checkbox-filter">
-              <legend>Sprint</legend>
-              <div id="sprintFilter" class="checkbox-options" aria-label="Filtrar por sprint"></div>
-            </fieldset>
-
-            <div class="date-range-filter" data-date-range="gantt">
-              <button id="ganttDateRangeButton" class="date-range-button" type="button" data-date-range-toggle="gantt" aria-expanded="false" aria-controls="ganttDateRangePanel">
-                <span class="date-range-icon" aria-hidden="true">📅</span>
-                <span class="date-range-button-text">Rango de fecha</span>
-                <strong id="ganttDateRangeSummary">Todas las fechas</strong>
-              </button>
-
-              <div id="ganttDateRangePanel" class="date-range-panel" data-date-range-panel="gantt" hidden>
-                <label>
-                  Desde
-                  <input id="startDateFilter" type="date">
-                </label>
-
-                <label>
-                  Hasta
-                  <input id="endDateFilter" type="date">
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="toggle-row" aria-label="Filtros booleanos">
-            <label class="toggle">
-              <input id="showSubtasksFilter" type="checkbox" checked>
-              <span>Mostrar subtareas</span>
-            </label>
-
-            <label class="toggle">
-              <input id="excludeDoneFilter" type="checkbox" checked>
-              <span>Excluir finalizadas</span>
-            </label>
-
-            <label class="toggle">
-              <input id="activeOnlyFilter" type="checkbox">
-              <span>Solo tareas activas</span>
-            </label>
-
-            <label class="toggle">
-              <input id="overdueOnlyFilter" type="checkbox">
-              <span>Solo vencidas</span>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      <section id="messageArea" class="message-area" aria-live="polite">
-        <div id="loadingBox" class="loading-box" hidden></div>
-        <div id="errorBox" class="error-box" hidden></div>
-      </section>
-
-      <section id="ganttView" class="view-page">
-      <section class="panel gantt-panel" aria-labelledby="ganttTitle">
-        <div class="gantt-toolbar">
-          <div>
-            <h2 id="ganttTitle">Gantt por usuario asignado</h2>
-            <p id="summaryText">Carga inicial. Ingresa credenciales y consulta Jira.</p>
-          </div>
-
-          <div class="view-controls" aria-label="Controles de visualizacion">
-            <button class="export-button module-export-button" type="button" data-export-module="gantt" aria-label="Exportar Gantt a Excel" title="Exportar Gantt a Excel">⇩</button>
-            <div class="timeline-zoom" aria-label="Zoom de linea de tiempo">
-              <div id="timelineZoomOptions" class="timeline-zoom-options">
-                <button class="zoom-option" type="button" data-zoom="today">Hoy</button>
-                <button class="zoom-option active" type="button" data-zoom="week">Semanas</button>
-                <button class="zoom-option" type="button" data-zoom="month">Meses</button>
-                <button class="zoom-option" type="button" data-zoom="quarter">Trimestres</button>
-              </div>
-              <button class="zoom-info" type="button" title="Ctrl + rueda del mouse sobre el Gantt para cambiar el zoom" aria-label="Informacion de zoom">i</button>
-              <button id="collapseZoomButton" class="zoom-collapse" type="button" aria-label="Colapsar controles de zoom" aria-expanded="true">›</button>
-            </div>
-            <button id="groupPrincipalButton" class="secondary-button icon-action-button" type="button" aria-pressed="false" title="Agrupar por Principal" aria-label="Agrupar por Principal">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M7 5h10M7 12h10M7 19h10M4 5h.01M4 12h.01M4 19h.01" />
-                <path d="M4 5v14" />
+          <article class="kpi-card">
+            <button class="kpi-action export-button" type="button"
+                    data-export-kpi="accuracy" aria-label="Exportar precisión de estimación">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path d="M5.5 1.5v6M3.5 5.5l2 2 2-2M1.5 9.5h8"
+                      stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
-            <button id="expandAllButton" class="secondary-button" type="button">Expandir</button>
-            <button id="collapseUsersButton" class="secondary-button" type="button">Colapsar usuarios</button>
-            <button id="collapseTasksButton" class="secondary-button" type="button">Colapsar tareas</button>
-          </div>
+            <button class="kpi-action info-button" type="button"
+                    data-kpi-info="accuracy" aria-label="Información precisión de estimación">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M5.5 5v3.5M5.5 3.5h.01"
+                      stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button class="kpi-action detail-button" type="button"
+                    data-kpi-detail="accuracy" aria-label="Ver detalle de precisión">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path d="M5.5 1.5v8M1.5 5.5h8"
+                      stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <span class="kpi-label">Precisión de estimación</span>
+            <strong id="kpiAccuracy" class="kpi-value">0%</strong>
+            <small id="kpiAccuracyMeta" class="kpi-meta">Sin estimación</small>
+            <p id="info-accuracy" class="kpi-info" hidden>Tiempo registrado / estimación original. Sirve para evaluar calidad de planeación y madurez de estimación.</p>
+            <div id="accuracyDetails" class="kpi-detail-list" hidden></div>
+          </article>
+
+          <article class="kpi-card daily-load-kpi">
+            <button class="kpi-action export-button" type="button"
+                    data-export-kpi="dailyLoad" aria-label="Exportar carga diaria">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path d="M5.5 1.5v6M3.5 5.5l2 2 2-2M1.5 9.5h8"
+                      stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="kpi-action info-button" type="button"
+                    data-kpi-info="dailyLoad" aria-label="Información carga diaria">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M5.5 5v3.5M5.5 3.5h.01"
+                      stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button class="kpi-action detail-button" type="button"
+                    data-kpi-detail="dailyLoad" aria-label="Ver detalle de carga diaria">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path d="M5.5 1.5v8M1.5 5.5h8"
+                      stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <span class="kpi-label">Carga diaria de recursos</span>
+            <strong id="kpiDailyLoad" class="kpi-value">0%</strong>
+            <small id="kpiDailyLoadMeta" class="kpi-meta">Sin carga planificada</small>
+            <div class="daily-load-summary">
+              <span><b id="dailyOverloadedCount">0</b> sobrecargados</span>
+              <span><b id="dailyHealthyCount">0</b> saludables</span>
+              <span><b id="dailyAvailableCount">0</b> con capacidad libre</span>
+            </div>
+            <p id="info-dailyLoad" class="kpi-info" hidden>Distribuye la estimación original entre los días laborales de cada ticket y compara la carga diaria por persona contra una capacidad estándar de 8 horas.</p>
+          </article>
+
         </div>
 
-        <div class="gantt-shell">
-          <div class="gantt" id="ganttContainer" tabindex="0" aria-label="Diagrama Gantt con scroll horizontal">
-            <div class="gantt-header">
-              <div class="issue-column">Usuario / Ticket</div>
-              <div id="timelineHeader" class="timeline-column"></div>
-            </div>
-            <div id="ganttBody" class="gantt-body">
-              <div class="empty-state">
-                <strong>Carga inicial</strong>
-                <span>Completa los datos de Jira y ejecuta la consulta para visualizar la linea de tiempo.</span>
+        <div id="dailyLoadDetails" class="analytics-grid" hidden>
+          <article class="analytics-card daily-load-card">
+            <button class="kpi-action export-button" type="button"
+                    data-export-kpi="dailyLoad" aria-label="Exportar carga diaria">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path d="M5.5 1.5v6M3.5 5.5l2 2 2-2M1.5 9.5h8"
+                      stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="kpi-action info-button" type="button"
+                    data-kpi-info="dailyLoadWidget" aria-label="Info Daily Resource Load">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M5.5 5v3.5M5.5 3.5h.01"
+                      stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <div class="analytics-card-header">
+              <div>
+                <h3>Carga diaria de recursos</h3>
+                <p>Heatmap y tabla ejecutiva de utilización diaria por persona.</p>
               </div>
+              <label class="toggle compact-toggle">
+                <input id="dailyExcludeDoneFilter" type="checkbox" checked>
+                <span>Excluir finalizadas</span>
+              </label>
+            </div>
+            <p id="info-dailyLoadWidget" class="kpi-info" hidden>Se calcula tomando cada ticket activo con responsable, fecha inicio, fecha fin y estimación original. Primero cuenta los días laborales entre inicio y fin, excluyendo sábados y domingos. Luego distribuye la estimación original en horas entre esos días: carga diaria del ticket = estimación original / días laborales. Finalmente suma la carga diaria de todos los tickets concurrentes por persona y compara contra una capacidad estándar de 8h: % carga = horas asignadas / 8h × 100.</p>
+            <div id="dailyLoadHeatmap" class="daily-heatmap"></div>
+            <div id="dailyLoadTable" class="daily-load-table"></div>
+          </article>
+        </div>
+
+        <div class="analytics-grid">
+          <article class="analytics-card">
+            <button class="kpi-action export-button" type="button"
+                    data-export-kpi="agingBuckets" aria-label="Exportar cubos de envejecimiento">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path d="M5.5 1.5v6M3.5 5.5l2 2 2-2M1.5 9.5h8"
+                      stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="kpi-action info-button" type="button"
+                    data-kpi-info="agingBuckets" aria-label="Información cubos de envejecimiento">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M5.5 5v3.5M5.5 3.5h.01"
+                      stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <h3>Cubos de envejecimiento</h3>
+            <p id="info-agingBuckets" class="kpi-info" hidden>Se calcula con tickets abiertos usando: hoy menos fecha de inicio. Los cubos agrupan 0–7 días como normal, 7–30 días como atención y más de 30 días como riesgo.</p>
+            <div id="agingBuckets" class="bucket-grid"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         VIEW: SPRINT ANALYTICS (Gantt)
+    ════════════════════════════════════════════ -->
+    <section id="ganttView" class="view-page" hidden aria-labelledby="ganttViewTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="ganttViewTitle">Sprint Analytics</h1>
+          <p class="view-subtitle" id="summaryText">Carga inicial. Ingresa credenciales y consulta Jira.</p>
+        </div>
+        <div class="view-controls" aria-label="Controles de visualización">
+          <button class="export-button module-export-button icon-btn" type="button"
+                  data-export-module="gantt" aria-label="Exportar Gantt a Excel" title="Exportar Gantt a Excel">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M6.5 2v7.5M4 7l2.5 2.5L9 7M1.5 11.5h10"
+                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <div class="timeline-zoom" aria-label="Zoom de línea de tiempo">
+            <div id="timelineZoomOptions" class="timeline-zoom-options">
+              <button class="zoom-option" type="button" data-zoom="today">Hoy</button>
+              <button class="zoom-option active" type="button" data-zoom="week">Semanas</button>
+              <button class="zoom-option" type="button" data-zoom="month">Meses</button>
+              <button class="zoom-option" type="button" data-zoom="quarter">Trimestres</button>
+            </div>
+            <button class="zoom-info" type="button"
+                    title="Ctrl + rueda del mouse sobre el Gantt para cambiar el zoom"
+                    aria-label="Información de zoom">i</button>
+            <button id="collapseZoomButton" class="zoom-collapse" type="button"
+                    aria-label="Colapsar controles de zoom" aria-expanded="true">›</button>
+          </div>
+
+          <button id="groupPrincipalButton" class="icon-btn" type="button"
+                  aria-pressed="false" title="Agrupar por Principal" aria-label="Agrupar por Principal">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">
+              <path d="M7 5h10M7 12h10M7 19h10M4 5h.01M4 12h.01M4 19h.01"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M4 5v14" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+
+          <button id="expandAllButton" class="ghost-btn" type="button">Expandir</button>
+          <button id="collapseUsersButton" class="ghost-btn" type="button">Colapsar usuarios</button>
+          <button id="collapseTasksButton" class="ghost-btn" type="button">Colapsar tareas</button>
+        </div>
+      </div>
+
+      <div class="gantt-shell">
+        <div class="gantt" id="ganttContainer" tabindex="0"
+             aria-label="Diagrama Gantt con scroll horizontal">
+          <div class="gantt-header">
+            <div class="issue-column">Usuario / Ticket</div>
+            <div id="timelineHeader" class="timeline-column"></div>
+          </div>
+          <div id="ganttBody" class="gantt-body">
+            <div class="empty-state">
+              <strong>Carga inicial</strong>
+              <span>Completa los datos de Jira y ejecuta la consulta para visualizar la línea de tiempo.</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="gantt-table-module" aria-labelledby="ganttIssueTableTitle">
+      <div class="gantt-table-module" aria-labelledby="ganttIssueTableTitle">
+        <div class="gantt-table-header">
+          <div>
+            <h3 id="ganttIssueTableTitle">Seguimiento diario</h3>
+            <p id="ganttIssueTableCounter">Sin datos cargados.</p>
+          </div>
+          <button class="export-button module-export-button icon-btn" type="button"
+                  data-export-module="dailyTracking" aria-label="Exportar seguimiento diario a Excel">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M6.5 2v7.5M4 7l2.5 2.5L9 7M1.5 11.5h10"
+                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div id="ganttIssueTable" class="gantt-ticket-table" role="table"
+             aria-label="Detalle de tickets visibles en Gantt"></div>
+      </div>
+
+      <div class="gantt-table-module" aria-labelledby="missingEstimateTableTitle">
+        <div class="gantt-table-header">
+          <div>
+            <h3 id="missingEstimateTableTitle">Pendientes por estimar</h3>
+            <p id="missingEstimateTableCounter">Sin datos cargados.</p>
+          </div>
+          <button class="export-button module-export-button icon-btn" type="button"
+                  data-export-module="missingEstimates" aria-label="Exportar pendientes por estimar a Excel">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M6.5 2v7.5M4 7l2.5 2.5L9 7M1.5 11.5h10"
+                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div id="missingEstimateTable" class="gantt-ticket-table missing-estimate-table" role="table"
+             aria-label="Responsables con tickets pendientes por estimar"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         VIEW: CYCLE TIME & FLOW (PERT)
+    ════════════════════════════════════════════ -->
+    <section id="pertView" class="view-page" hidden aria-labelledby="pertViewTitle">
+      <div class="view-header">
+        <div>
+          <p class="eyebrow">Red de dependencias</p>
+          <h1 class="view-title" id="pertViewTitle">Cycle Time & Flow</h1>
+          <p class="view-subtitle" id="pertDescription">Visualiza actividades vinculadas e identifica cuellos de botella.</p>
+        </div>
+        <div class="view-controls" aria-label="Controles PERT">
+          <span id="pertCounter" class="data-badge">Sin datos</span>
+          <button class="export-button module-export-button icon-btn" type="button"
+                  data-export-module="pert" aria-label="Exportar PERT a Excel">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M6.5 2v7.5M4 7l2.5 2.5L9 7M1.5 11.5h10"
+                    stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="pert-legend" aria-label="Leyenda del diagrama PERT">
+        <span><i class="pert-legend-dot status-todo" aria-hidden="true"></i> Por hacer</span>
+        <span><i class="pert-legend-dot status-progress" aria-hidden="true"></i> En curso</span>
+        <span><i class="pert-legend-dot status-blocked" aria-hidden="true"></i> Pendiente/Bloqueado</span>
+        <span><i class="pert-legend-dot status-done" aria-hidden="true"></i> Finalizada</span>
+        <span><i class="pert-legend-dot pert-bottleneck-dot" aria-hidden="true"></i> Cuello de botella</span>
+      </div>
+
+      <div id="pertEmptyState" class="empty-state-view">
+        <div class="empty-icon-wrap" aria-hidden="true">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <circle cx="8" cy="26" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.3"/>
+            <circle cx="26" cy="10" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.5"/>
+            <circle cx="26" cy="42" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.3"/>
+            <circle cx="44" cy="26" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.7"/>
+            <path d="M13.5 26h7M31.5 12l10 12M31.5 40l10-12"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+        </div>
+        <strong class="empty-title">Sin dependencias</strong>
+        <p class="empty-desc">Consulta Jira para construir la red de dependencias.</p>
+      </div>
+
+      <div id="pertContent" class="pert-content" hidden>
+        <div class="pert-summary-grid">
+          <article>
+            <span>Actividades vinculadas</span>
+            <strong id="pertNodeCount">0</strong>
+          </article>
+          <article>
+            <span>Dependencias</span>
+            <strong id="pertLinkCount">0</strong>
+          </article>
+          <article>
+            <span>Cuellos de botella</span>
+            <strong id="pertBottleneckCount">0</strong>
+          </article>
+        </div>
+
+        <div class="pert-scroll" tabindex="0"
+             aria-label="Diagrama PERT con desplazamiento horizontal">
+          <div id="pertGraph" class="pert-graph"></div>
+        </div>
+
+        <section class="pert-bottleneck-module" aria-labelledby="pertBottleneckTitle">
           <div class="gantt-table-header">
             <div>
-              <h3 id="ganttIssueTableTitle">Seguimiento diario</h3>
-              <p id="ganttIssueTableCounter">Sin datos cargados.</p>
+              <h3 id="pertBottleneckTitle">Cuellos de botella detectados</h3>
+              <p>Actividades que pueden afectar el flujo por bloqueos, vencimientos o dependencias aguas abajo.</p>
             </div>
-            <button class="export-button module-export-button" type="button" data-export-module="dailyTracking" aria-label="Exportar seguimiento diario a Excel" title="Exportar seguimiento diario a Excel">⇩</button>
           </div>
+          <div id="pertBottleneckList" class="pert-bottleneck-list"></div>
+        </section>
+      </div>
+    </section>
 
-          <div id="ganttIssueTable" class="gantt-ticket-table" role="table" aria-label="Detalle de tickets visibles en Gantt"></div>
+    <!-- ═══════════════════════════════════════════
+         VIEW: TEAM HEALTH (placeholder)
+    ════════════════════════════════════════════ -->
+    <section id="teamHealthView" class="view-page" hidden aria-labelledby="teamHealthTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="teamHealthTitle">Team Health</h1>
+          <p class="view-subtitle">¿Mi equipo puede mantener este ritmo?</p>
+        </div>
+      </div>
+      <div class="placeholder-view">
+        <svg class="placeholder-illustration" width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <path d="M8 48L20 30l12 10 12-20 12 16" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+          <rect x="4" y="8" width="56" height="48" rx="4" stroke="currentColor" stroke-width="1.8"
+                fill="none" opacity="0.18"/>
+        </svg>
+        <h2 class="placeholder-title">Team Health</h2>
+        <p class="placeholder-desc">Velocity histórico, predictibilidad y distribución de trabajo por equipo.</p>
+        <div class="placeholder-chips">
+          <span class="feature-chip">Velocity (12 sprints)</span>
+          <span class="feature-chip">Predictibilidad de commitments</span>
+          <span class="feature-chip">Carga por persona — heatmap</span>
+          <span class="feature-chip">Distribución bug / feature / chore</span>
+        </div>
+        <span class="coming-soon-label">Próximamente</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         VIEW: EPICS & ROADMAP (placeholder)
+    ════════════════════════════════════════════ -->
+    <section id="epicsView" class="view-page" hidden aria-labelledby="epicsTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="epicsTitle">Epics & Roadmap</h1>
+          <p class="view-subtitle">¿Vamos a cumplir los compromisos?</p>
+        </div>
+      </div>
+      <div class="placeholder-view">
+        <svg class="placeholder-illustration" width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <path d="M4 8v48M4 8h56" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+          <rect x="8" y="16" width="30" height="8" rx="2" fill="currentColor" opacity="0.3"/>
+          <rect x="8" y="28" width="44" height="8" rx="2" fill="currentColor" opacity="0.2"/>
+          <rect x="8" y="40" width="22" height="8" rx="2" fill="currentColor" opacity="0.15"/>
+        </svg>
+        <h2 class="placeholder-title">Epics & Roadmap</h2>
+        <p class="placeholder-desc">Timeline de epics con progreso real vs. planificado y proyección de fecha de finalización.</p>
+        <div class="placeholder-chips">
+          <span class="feature-chip">Gantt de epics (salud visual)</span>
+          <span class="feature-chip">Proyección con velocity actual</span>
+          <span class="feature-chip">Burnup por epic</span>
+          <span class="feature-chip">Gap velocity requerida vs. actual</span>
+        </div>
+        <span class="coming-soon-label">Próximamente</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         VIEW: WORK DISTRIBUTION (placeholder)
+    ════════════════════════════════════════════ -->
+    <section id="workDistView" class="view-page" hidden aria-labelledby="workDistTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="workDistTitle">Work Distribution</h1>
+          <p class="view-subtitle">¿Cómo está contribuyendo cada persona?</p>
+        </div>
+      </div>
+      <div class="placeholder-view">
+        <svg class="placeholder-illustration" width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="20" cy="22" r="9" stroke="currentColor" stroke-width="2" fill="none" opacity="0.35"/>
+          <circle cx="44" cy="22" r="9" stroke="currentColor" stroke-width="2" fill="none" opacity="0.25"/>
+          <path d="M4 52c0-8.84 7.16-16 16-16M60 52c0-8.84-7.16-16-16-16"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+        </svg>
+        <h2 class="placeholder-title">Work Distribution</h2>
+        <p class="placeholder-desc">Grid de personas con throughput, distribución de trabajo y cycle time individual. Diseñado para entender el trabajo, no para vigilar personas.</p>
+        <div class="placeholder-chips">
+          <span class="feature-chip">Grid de personas con stats</span>
+          <span class="feature-chip">Throughput histórico por sprint</span>
+          <span class="feature-chip">Cycle time vs. promedio del equipo</span>
+          <span class="feature-chip">Issues actuales con aging</span>
+        </div>
+        <span class="coming-soon-label">Próximamente</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         VIEW: SETTINGS
+    ════════════════════════════════════════════ -->
+    <section id="settingsView" class="view-page" hidden aria-labelledby="settingsTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="settingsTitle">Settings</h1>
+          <p class="view-subtitle">Configuración de conexión con Jira y preferencias.</p>
+        </div>
+      </div>
+
+      <div class="settings-layout">
+
+        <div class="panel config-panel settings-card">
+          <button id="configToggle" class="config-tab" type="button"
+                  aria-expanded="true" aria-controls="configContent">
+            <div>
+              <h2 id="configTitle">Configuración de Jira</h2>
+              <p>Mostrar u ocultar credenciales, URL base y JQL.</p>
+            </div>
+            <span aria-hidden="true">-</span>
+          </button>
+
+          <div id="configContent" class="config-content">
+            <form id="jiraForm" class="config-grid">
+              <label>
+                URL base de Jira
+                <input id="jiraBaseUrl" type="url"
+                       placeholder="https://empresa.atlassian.net" required>
+              </label>
+
+              <label>
+                Email o usuario
+                <input id="jiraUser" type="text"
+                       placeholder="usuario@empresa.com" autocomplete="off" required>
+              </label>
+
+              <label>
+                API Token
+                <input id="jiraToken" type="password"
+                       placeholder="Ingresa el token manualmente" autocomplete="off" required>
+              </label>
+
+              <label class="wide">
+                JQL de búsqueda
+                <input id="jiraJql" type="text"
+                       value="project = DES ORDER BY updated DESC" required>
+              </label>
+            </form>
+
+            <p class="connection-note">URL, usuario y JQL se guardan en este navegador. El token solo se recuerda durante la sesión local actual.</p>
+
+            <div class="security-warning" role="note">
+              <strong>Advertencia de seguridad:</strong>
+              este prototipo envía credenciales desde el navegador hacia un proxy local. En producción, el token debe vivir solo en un backend seguro o secret manager.
+            </div>
+          </div>
         </div>
 
-        <div class="gantt-table-module" aria-labelledby="missingEstimateTableTitle">
-          <div class="gantt-table-header">
-            <div>
-              <h3 id="missingEstimateTableTitle">Pendientes por estimar</h3>
-              <p id="missingEstimateTableCounter">Sin datos cargados.</p>
-            </div>
-            <button class="export-button module-export-button" type="button" data-export-module="missingEstimates" aria-label="Exportar pendientes por estimar a Excel" title="Exportar pendientes por estimar a Excel">⇩</button>
+        <div class="settings-card settings-info-card">
+          <h2>Sincronización</h2>
+          <p>El proxy local conecta directamente con la API de Jira en cada consulta. No hay caché persistente entre sesiones. Usa <strong>Consultar Jira</strong> para cargar datos o <strong>Refrescar datos</strong> para actualizar sin cambiar filtros.</p>
+          <div class="settings-security-note">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="3.5" y="6" width="7" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M5 6V4.5a2 2 0 0 1 4 0V6" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+            Solo lectura — FlowBoard nunca modifica datos en Jira.
           </div>
-
-          <div id="missingEstimateTable" class="gantt-ticket-table missing-estimate-table" role="table" aria-label="Responsables con tickets pendientes por estimar"></div>
         </div>
-      </section>
-      </section>
 
-      <section id="pertView" class="view-page" hidden>
-        <section class="panel pert-panel" aria-labelledby="pertTitle">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Red de dependencias</p>
-              <h2 id="pertTitle">Diagrama PERT</h2>
-              <p id="pertDescription">Visualiza actividades vinculadas e identifica cuellos de botella.</p>
-            </div>
-            <div class="filter-actions">
-              <span id="pertCounter" class="badge">Sin datos</span>
-              <button class="export-button module-export-button" type="button" data-export-module="pert" aria-label="Exportar PERT a Excel" title="Exportar PERT a Excel">⇩</button>
-            </div>
-          </div>
+      </div>
+    </section>
 
-          <div class="pert-legend" aria-label="Leyenda del diagrama PERT">
-            <span><i class="pert-legend-dot status-todo"></i> Por hacer</span>
-            <span><i class="pert-legend-dot status-progress"></i> En curso</span>
-            <span><i class="pert-legend-dot status-blocked"></i> Pendiente/Bloqueado</span>
-            <span><i class="pert-legend-dot status-done"></i> Finalizada</span>
-            <span><i class="pert-legend-dot pert-bottleneck-dot"></i> Cuello de botella</span>
-          </div>
+  </div><!-- /main-area -->
+</div><!-- /app-body -->
 
-          <div id="pertEmptyState" class="empty-state">
-            <strong>Carga inicial</strong>
-            <span>Consulta Jira para construir la red de dependencias.</span>
-          </div>
-
-          <div id="pertContent" class="pert-content" hidden>
-            <div class="pert-summary-grid">
-              <article>
-                <span>Actividades vinculadas</span>
-                <strong id="pertNodeCount">0</strong>
-              </article>
-              <article>
-                <span>Dependencias</span>
-                <strong id="pertLinkCount">0</strong>
-              </article>
-              <article>
-                <span>Cuellos de botella</span>
-                <strong id="pertBottleneckCount">0</strong>
-              </article>
-            </div>
-
-            <div class="pert-scroll" tabindex="0" aria-label="Diagrama PERT con desplazamiento horizontal">
-              <div id="pertGraph" class="pert-graph"></div>
-            </div>
-
-            <section class="pert-bottleneck-module" aria-labelledby="pertBottleneckTitle">
-              <div class="gantt-table-header">
-                <div>
-                  <h3 id="pertBottleneckTitle">Cuellos de botella detectados</h3>
-                  <p>Actividades que pueden afectar el flujo por bloqueos, vencimientos o dependencias aguas abajo.</p>
-                </div>
-              </div>
-              <div id="pertBottleneckList" class="pert-bottleneck-list"></div>
-            </section>
-          </div>
-        </section>
-      </section>
-
-      <section id="analyticsView" class="view-page" hidden>
-        <section class="panel analytics-panel" aria-labelledby="analyticsTitle">
-          <div class="section-title">
-            <div>
-              <p class="eyebrow">Panel ejecutivo</p>
-              <h2 id="analyticsTitle">Tablero ejecutivo Jira</h2>
-              <p>Indicadores estrategicos para confiabilidad, precision de estimacion y envejecimiento del trabajo.</p>
-            </div>
-            <span id="analyticsCounter" class="badge">Sin datos</span>
-          </div>
-
-          <div id="analyticsEmptyState" class="empty-state">
-            <strong>Carga inicial</strong>
-            <span>Consulta Jira para calcular los KPIs ejecutivos.</span>
-          </div>
-
-          <div id="analyticsContent" class="analytics-content" hidden>
-            <div class="kpi-grid">
-              <article class="kpi-card">
-                <button class="export-button" type="button" data-export-kpi="accuracy" aria-label="Exportar precision de estimacion a Excel" title="Exportar a Excel">⇩</button>
-                <button class="info-button" type="button" data-kpi-info="accuracy" aria-label="Informacion de precision de estimacion">i</button>
-                <button class="detail-button" type="button" data-kpi-detail="accuracy" aria-label="Ver detalle de precision de estimacion">+</button>
-                <span class="kpi-label">Precision de estimacion</span>
-                <strong id="kpiAccuracy">0%</strong>
-                <small id="kpiAccuracyMeta">Sin estimacion</small>
-                <p id="info-accuracy" class="kpi-info" hidden>Tiempo registrado / estimacion original. Sirve para evaluar calidad de planeacion y madurez de estimacion.</p>
-                <div id="accuracyDetails" class="kpi-detail-list" hidden></div>
-              </article>
-
-              <article class="kpi-card daily-load-kpi">
-                <button class="export-button" type="button" data-export-kpi="dailyLoad" aria-label="Exportar carga diaria de recursos a Excel" title="Exportar a Excel">⇩</button>
-                <button class="info-button" type="button" data-kpi-info="dailyLoad" aria-label="Informacion de carga diaria de recursos">i</button>
-                <button class="detail-button" type="button" data-kpi-detail="dailyLoad" aria-label="Ver detalle de carga diaria de recursos">+</button>
-                <span class="kpi-label">Carga diaria de recursos</span>
-                <strong id="kpiDailyLoad">0%</strong>
-                <small id="kpiDailyLoadMeta">Sin carga planificada</small>
-                <div class="daily-load-summary">
-                  <span><b id="dailyOverloadedCount">0</b> sobrecargados</span>
-                  <span><b id="dailyHealthyCount">0</b> saludables</span>
-                  <span><b id="dailyAvailableCount">0</b> con capacidad libre</span>
-                </div>
-                <p id="info-dailyLoad" class="kpi-info" hidden>Distribuye la estimacion original entre los dias laborales de cada ticket y compara la carga diaria por persona contra una capacidad estandar de 8 horas.</p>
-              </article>
-
-            </div>
-
-            <div id="dailyLoadDetails" class="analytics-grid" hidden>
-              <article class="analytics-card daily-load-card">
-                <button class="export-button" type="button" data-export-kpi="dailyLoad" aria-label="Exportar carga diaria de recursos a Excel" title="Exportar a Excel">⇩</button>
-                <button class="info-button" type="button" data-kpi-info="dailyLoadWidget" aria-label="Informacion de Daily Resource Load">i</button>
-                <div class="analytics-card-header">
-                  <div>
-                    <h3>Carga diaria de recursos</h3>
-                    <p>Heatmap y tabla ejecutiva de utilizacion diaria por persona.</p>
-                  </div>
-                  <label class="toggle compact-toggle">
-                    <input id="dailyExcludeDoneFilter" type="checkbox" checked>
-                    <span>Excluir finalizadas</span>
-                  </label>
-                </div>
-                <p id="info-dailyLoadWidget" class="kpi-info" hidden>Se calcula tomando cada ticket activo con responsable, fecha inicio, fecha fin y estimacion original. Primero cuenta los dias laborales entre inicio y fin, excluyendo sabados y domingos. Luego distribuye la estimacion original en horas entre esos dias: carga diaria del ticket = estimacion original / dias laborales. Finalmente suma la carga diaria de todos los tickets concurrentes por persona y compara contra una capacidad estandar de 8h: % carga = horas asignadas / 8h x 100.</p>
-                <div id="dailyLoadHeatmap" class="daily-heatmap"></div>
-                <div id="dailyLoadTable" class="daily-load-table"></div>
-              </article>
-            </div>
-
-            <div class="analytics-grid">
-              <article class="analytics-card">
-                <button class="export-button" type="button" data-export-kpi="agingBuckets" aria-label="Exportar cubos de envejecimiento a Excel" title="Exportar a Excel">⇩</button>
-                <button class="info-button" type="button" data-kpi-info="agingBuckets" aria-label="Informacion de cubos de envejecimiento">i</button>
-                <h3>Cubos de envejecimiento</h3>
-                <p id="info-agingBuckets" class="kpi-info" hidden>Se calcula con tickets abiertos usando: hoy menos fecha de inicio. Los cubos agrupan 0-7 dias como normal, 7-30 dias como atencion y mas de 30 dias como riesgo.</p>
-                <div id="agingBuckets" class="bucket-grid"></div>
-              </article>
-            </div>
-          </div>
-        </section>
-      </section>
-    </main>
-
-    <script src="app.js?v=20260601-dependency-anchors"></script>
-  </body>
+<script src="app.js?v=20260625-flowboard-redesign"></script>
+</body>
 </html>

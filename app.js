@@ -174,7 +174,46 @@ const I18N = {
     noResults: "Sin resultados",
     noDates: "Sin fechas",
     noDate: "Sin fecha",
-    sprint: "Sprint"
+    sprint: "Sprint",
+    tasks: "tareas",
+    priority: "Prioridad",
+    openInJira: "Abrir en Jira",
+    dependenciesCount: "dependencias",
+    dependenciesDetected: "Dependencias detectadas",
+    noDuration: "Sin duracion",
+    durationDays: "dias",
+    weekPrefix: "S",
+    quarterPrefix: "T",
+    tooltipKey: "Clave",
+    tooltipSummary: "Resumen",
+    tooltipUser: "Usuario",
+    tooltipStatus: "Estado",
+    tooltipStart: "Inicio",
+    tooltipEnd: "Fin",
+    tooltipDuration: "Duracion",
+    tooltipPriority: "Prioridad",
+    tooltipEstimate: "Estimacion original",
+    tooltipTracking: "Seguimiento de tiempo",
+    tooltipDependencies: "Dependencias",
+    deviationByPerson: "Desviacion por persona asignada",
+    accuracyTableAriaLabel: "Detalle de precision de estimacion por responsable",
+    assignee: "Responsable",
+    logged: "Registrado",
+    estimated: "Estimado",
+    deviation: "Desviacion",
+    detail: "Detalle",
+    dailyTableTitle: "Tabla ejecutiva de utilizacion",
+    dailyTableAriaLabel: "Tabla ejecutiva de carga diaria por recurso",
+    dailyHeatmapCorner: "Usuario",
+    dailyWindowNote: "Ventana visible: 15 dias antes y 15 dias despues de hoy, mostrando solo dias laborales.",
+    date: "Fecha",
+    assignedHours: "Horas asignadas",
+    dailyCapacity: "Capacidad diaria",
+    loadPercent: "% Carga",
+    loadStatus: "Estado",
+    sprintStart: "Inicio",
+    sprintEnd: "Fin",
+    inclSubtasks: "incl. subtareas"
   },
   en: {
     projectTimeline: "Project timeline",
@@ -312,7 +351,46 @@ const I18N = {
     noResults: "No results",
     noDates: "No dates",
     noDate: "No date",
-    sprint: "Sprint"
+    sprint: "Sprint",
+    tasks: "tasks",
+    priority: "Priority",
+    openInJira: "Open in Jira",
+    dependenciesCount: "dependencies",
+    dependenciesDetected: "Detected dependencies",
+    noDuration: "No duration",
+    durationDays: "days",
+    weekPrefix: "W",
+    quarterPrefix: "Q",
+    tooltipKey: "Key",
+    tooltipSummary: "Summary",
+    tooltipUser: "User",
+    tooltipStatus: "Status",
+    tooltipStart: "Start",
+    tooltipEnd: "End",
+    tooltipDuration: "Duration",
+    tooltipPriority: "Priority",
+    tooltipEstimate: "Original estimate",
+    tooltipTracking: "Time tracking",
+    tooltipDependencies: "Dependencies",
+    deviationByPerson: "Deviation by assignee",
+    accuracyTableAriaLabel: "Estimate accuracy detail by assignee",
+    assignee: "Assignee",
+    logged: "Logged",
+    estimated: "Estimated",
+    deviation: "Deviation",
+    detail: "Detail",
+    dailyTableTitle: "Executive utilization table",
+    dailyTableAriaLabel: "Daily load executive table by resource",
+    dailyHeatmapCorner: "User",
+    dailyWindowNote: "Visible window: 15 days before and 15 days after today, showing only working days.",
+    date: "Date",
+    assignedHours: "Assigned hours",
+    dailyCapacity: "Daily capacity",
+    loadPercent: "% Load",
+    loadStatus: "Status",
+    sprintStart: "Start",
+    sprintEnd: "End",
+    inclSubtasks: "incl. subtasks"
   }
 };
 
@@ -322,7 +400,7 @@ const state = {
   filteredIssues: [],
   analyticsFilteredIssues: [],
   currentFilters: null,
-  activeView: "gantt",
+  activeView: "analytics",
   pertGraph: { nodes: [], links: [], bottlenecks: [] },
   zoom: "week",
   ganttGroupBy: "assignee",
@@ -335,7 +413,7 @@ const state = {
   expandedMissingEstimates: new Set(),
   worklogsByIssue: {},
   worklogLoading: new Set(),
-  theme: localStorage.getItem("jira-gantt-theme") || "light",
+  theme: localStorage.getItem("jira-gantt-theme") || "dark",
   language: localStorage.getItem(LANGUAGE_STORAGE_KEY) || "es",
   searchTimer: null
 };
@@ -442,6 +520,18 @@ function bindEvents() {
   elements.ganttViewButton.addEventListener("click", () => setActiveView("gantt"));
   elements.pertViewButton.addEventListener("click", () => setActiveView("pert"));
   elements.analyticsViewButton.addEventListener("click", () => setActiveView("analytics"));
+
+  // Sidebar navigation
+  document.querySelectorAll(".nav-item[data-nav-view]").forEach((item) => {
+    item.addEventListener("click", () => setActiveView(item.dataset.navView));
+  });
+  document.querySelector("#sidebarToggle")?.addEventListener("click", () => {
+    const sidebar = document.querySelector("#sidebar");
+    sidebar.classList.toggle("collapsed");
+    document.documentElement.classList.toggle("sidebar-collapsed");
+    const expanded = !sidebar.classList.contains("collapsed");
+    document.querySelector("#sidebarToggle")?.setAttribute("aria-expanded", String(expanded));
+  });
   elements.configToggle.addEventListener("click", toggleConfigPanel);
   elements.filtersToggle.addEventListener("click", toggleFiltersPanel);
   elements.searchButton.addEventListener("click", handleSearch);
@@ -525,6 +615,16 @@ function setActiveView(view) {
   elements.ganttViewButton.classList.toggle("active", isGantt);
   elements.pertViewButton.classList.toggle("active", isPert);
   elements.analyticsViewButton.classList.toggle("active", isAnalytics);
+
+  // Sync sidebar active state
+  document.querySelectorAll(".nav-item[data-nav-view]").forEach((item) => {
+    item.classList.toggle("active", item.dataset.navView === view);
+  });
+  // Show / hide placeholder views
+  ["teamHealth", "epics", "workDist", "settings"].forEach((v) => {
+    const el = document.querySelector(`#${v}View`);
+    if (el) el.hidden = v !== view;
+  });
 
   if (isAnalytics) {
     renderAnalyticsDashboard();
@@ -786,6 +886,7 @@ function toggleConfigPanel() {
   elements.configContent.hidden = !isOpening;
   elements.configToggle.setAttribute("aria-expanded", String(isOpening));
   elements.configToggle.querySelector("span").textContent = isOpening ? "-" : "+";
+  if (isOpening) setActiveView("settings");
 }
 
 function toggleFiltersPanel() {
@@ -1596,7 +1697,7 @@ function renderGanttIssueTableRow(issue) {
       <span role="cell" title="${escapeHtml(issue.assignee)}">${escapeHtml(issue.assignee)}</span>
       <span role="cell">
         ${issueUrl
-          ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir ${escapeHtml(issueTitle)} en Jira">${escapeHtml(issue.key)}</a>`
+          ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(t("openInJira"))}: ${escapeHtml(issueTitle)}">${escapeHtml(issue.key)}</a>`
           : `<strong title="${escapeHtml(issueTitle)}">${escapeHtml(issue.key)}</strong>`}
       </span>
       <span role="cell" title="${escapeHtml(issue.title)}">${escapeHtml(issue.title)}</span>
@@ -1700,7 +1801,7 @@ function renderUserRow(group, collapsed) {
       <button class="user-name row-toggle" type="button" data-collapse-user="${escapeHtml(group.assignee)}" aria-label="${collapsed ? "Expandir" : "Colapsar"} ${escapeHtml(groupType)} ${escapeHtml(group.assignee)}">
         <span>${collapsed ? "+" : "-"}</span>
         ${escapeHtml(group.assignee)}
-        <small>${group.issues.length} tareas</small>
+        <small>${group.issues.length} ${escapeHtml(t("tasks"))}</small>
       </button>
       <div class="user-track"></div>
     </div>
@@ -1725,9 +1826,9 @@ function renderIssueRow(issue, range, totalUnits, level, collapsed) {
       <div class="issue-cell ${isSubtask ? "subtask-cell" : ""} ${issue.isEpic ? "epic-cell" : ""}">
         <div class="issue-title">
           ${hasSubtasks ? `<button class="task-toggle" type="button" data-collapse-task="${escapeHtml(issue.key)}" aria-label="${collapsed ? "Expandir" : "Colapsar"} subtareas de ${escapeHtml(issue.key)}">${collapsed ? "+" : "-"}</button>` : `<span class="task-spacer"></span>`}
-          <span class="priority-dot ${getPriorityClass(issue.priority)}" title="Prioridad: ${escapeHtml(issue.priority)}"></span>
+          <span class="priority-dot ${getPriorityClass(issue.priority)}" title="${escapeHtml(t("priority"))}: ${escapeHtml(issue.priority)}"></span>
           ${issueUrl
-            ? `<a class="issue-key issue-link" href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir ${escapeHtml(issueTitle)} en Jira">${escapeHtml(issue.key)}</a>`
+            ? `<a class="issue-key issue-link" href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(t("openInJira"))}: ${escapeHtml(issueTitle)}">${escapeHtml(issue.key)}</a>`
             : `<span class="issue-key" title="${escapeHtml(issueTitle)}">${escapeHtml(issue.key)}</span>`}
           ${issueUrl
             ? `<a class="issue-summary issue-link" href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(issueTitle)}">${escapeHtml(issue.title)}</a>`
@@ -1739,7 +1840,7 @@ function renderIssueRow(issue, range, totalUnits, level, collapsed) {
           <span title="${escapeHtml(issue.principal)}">${escapeHtml(issue.principal)}</span>
           <span title="${escapeHtml(issue.project)}">${escapeHtml(issue.project)}</span>
           <span title="${escapeHtml(`${getOriginalEstimateTitle(issue)} | ${issue.timeTracking.tooltip}`)}">${escapeHtml(issue.originalEstimate.label)} / ${escapeHtml(issue.timeTracking.shortLabel)}</span>
-          ${issue.dependencyCount ? `<span title="Dependencias detectadas">${issue.dependencyCount} dependencias</span>` : ""}
+          ${issue.dependencyCount ? `<span title="${escapeHtml(t("dependenciesDetected"))}">${issue.dependencyCount} ${escapeHtml(t("dependenciesCount"))}</span>` : ""}
         </div>
       </div>
       <div class="timeline-row" style="--unit-width: calc(100% / ${totalUnits});">
@@ -1759,7 +1860,7 @@ function renderBar(issue, range, isSubtask) {
 
     return `
       <${tag} class="bar no-dates" ${linkAttrs} data-issue-key="${escapeHtml(issue.key)}" style="left: 0; width: 140px;" title="${escapeHtml(tooltip)}">
-        ${escapeHtml(issue.key)} · Sin fecha
+        ${escapeHtml(issue.key)} · ${escapeHtml(t("noDate"))}
       </${tag}>
     `;
   }
@@ -2045,18 +2146,19 @@ function calculatePertBottleneckMetrics(keys, links, issueByKey) {
     const causes = [];
     let score = (outgoingCount * 16) + (incomingCount * 5) + (downstreamCount * 6);
 
-    if (outgoingCount >= 2) causes.push(`${outgoingCount} actividades dependen directamente`);
-    if (downstreamCount >= 3) causes.push(`${downstreamCount} actividades aguas abajo`);
+    const isEn = state.language === "en";
+    if (outgoingCount >= 2) causes.push(isEn ? `${outgoingCount} activities depend directly` : `${outgoingCount} actividades dependen directamente`);
+    if (downstreamCount >= 3) causes.push(isEn ? `${downstreamCount} downstream activities` : `${downstreamCount} actividades aguas abajo`);
     if (issue.statusClass === "status-blocked") {
       score += 25;
-      causes.push("estado pendiente o bloqueado");
+      causes.push(isEn ? "pending or blocked status" : "estado pendiente o bloqueado");
     }
     if (issue.isOverdue) {
       score += 20;
-      causes.push("fecha de vencimiento superada");
+      causes.push(isEn ? "overdue" : "fecha de vencimiento superada");
     } else if (issue.isDueSoon) {
       score += 10;
-      causes.push("fecha de vencimiento cercana");
+      causes.push(isEn ? "due date approaching" : "fecha de vencimiento cercana");
     }
     if (issue.isCompleted) score = Math.max(score - 20, 0);
 
@@ -2107,7 +2209,7 @@ function renderPertNode(node) {
     <article class="${classes}" data-pert-node-key="${escapeHtml(issue.key)}" style="left: ${node.x}px; top: ${node.y}px;">
       <header>
         ${issueUrl
-          ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir ${escapeHtml(issue.key)} en Jira">${escapeHtml(issue.key)}</a>`
+          ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(t("openInJira"))}: ${escapeHtml(issue.key)}">${escapeHtml(issue.key)}</a>`
           : `<strong>${escapeHtml(issue.key)}</strong>`}
         ${node.metrics.isBottleneck ? `<span class="pert-risk-pill">${escapeHtml(state.language === "en" ? "Bottleneck" : "Cuello de botella")}</span>` : ""}
       </header>
@@ -2190,7 +2292,7 @@ function renderPertBottleneckList(bottlenecks) {
 
   elements.pertBottleneckList.innerHTML = bottlenecks.slice(0, 12).map(({ issue, metrics }) => {
     const issueUrl = getJiraIssueUrl(issue);
-    const causes = metrics.causes.length ? metrics.causes.join(" · ") : "alta concentracion de dependencias";
+    const causes = metrics.causes.length ? metrics.causes.join(" · ") : (state.language === "en" ? "high dependency concentration" : "alta concentracion de dependencias");
     return `
       <article class="pert-bottleneck-row">
         <span class="pert-score">${metrics.score}</span>
@@ -2225,7 +2327,7 @@ function renderSprintMarkerRow(sprints, range, totalUnits) {
 
 function renderSprintMarkerBar(sprint, range) {
   const position = getRangeBarPosition(parseLocalDate(sprint.startDate), parseLocalDate(sprint.endDate), range);
-  const tooltip = `${sprint.name}\nInicio: ${sprint.startDate}\nFin: ${sprint.endDate}`;
+  const tooltip = `${sprint.name}\n${t("sprintStart")}: ${sprint.startDate}\n${t("sprintEnd")}: ${sprint.endDate}`;
 
   return `
     <div class="sprint-marker-bar" style="left: ${position.left}%; width: ${position.width}%;" title="${escapeHtml(tooltip)}">
@@ -2468,14 +2570,14 @@ function renderAccuracyDetails(rows) {
   }
 
   elements.analytics.accuracyDetails.innerHTML = `
-    <div class="detail-heading">Desviacion por persona asignada</div>
-    <div class="accuracy-table" role="table" aria-label="Detalle de precision de estimacion por responsable">
+    <div class="detail-heading">${escapeHtml(t("deviationByPerson"))}</div>
+    <div class="accuracy-table" role="table" aria-label="${escapeHtml(t("accuracyTableAriaLabel"))}">
       <div class="accuracy-table-row accuracy-table-head" role="row">
-        <span role="columnheader">Responsable</span>
-        <span role="columnheader">Registrado</span>
-        <span role="columnheader">Estimado</span>
-        <span role="columnheader">Desviacion</span>
-        <span role="columnheader">Detalle</span>
+        <span role="columnheader">${escapeHtml(t("assignee"))}</span>
+        <span role="columnheader">${escapeHtml(t("logged"))}</span>
+        <span role="columnheader">${escapeHtml(t("estimated"))}</span>
+        <span role="columnheader">${escapeHtml(t("deviation"))}</span>
+        <span role="columnheader">${escapeHtml(t("detail"))}</span>
       </div>
       ${rows.map((row, index) => `
         <div class="accuracy-table-row" role="row">
@@ -2483,7 +2585,7 @@ function renderAccuracyDetails(rows) {
           <span role="cell" title="${escapeHtml(row.spentLabel)}">${escapeHtml(row.spentLabel)}</span>
           <span role="cell" title="${escapeHtml(row.originalLabel)}">${escapeHtml(row.originalLabel)}</span>
           <strong role="cell" title="${escapeHtml(row.deviationLabel)}">${escapeHtml(row.deviationLabel)}</strong>
-          <button class="daily-detail-toggle" type="button" data-accuracy-detail="${index}" aria-expanded="false">Ver tickets</button>
+          <button class="daily-detail-toggle" type="button" data-accuracy-detail="${index}" aria-expanded="false">${escapeHtml(t("viewTickets"))}</button>
         </div>
         <div class="accuracy-breakdown" id="accuracy-detail-${index}" hidden>
           ${renderAccuracyBreakdown(row)}
@@ -2495,20 +2597,20 @@ function renderAccuracyDetails(rows) {
 
 function renderAccuracyBreakdown(row) {
   if (!row.items?.length) {
-    return `<div class="metric-empty">No hay tickets asociados a este responsable.</div>`;
+    return `<div class="metric-empty">${escapeHtml(state.language === "en" ? "No tickets associated with this assignee." : "No hay tickets asociados a este responsable.")}</div>`;
   }
 
   return `
     <div class="daily-breakdown-summary">
-      ${escapeHtml(row.assignee)} · registrado ${escapeHtml(row.spentLabel)} · estimado ${escapeHtml(row.originalLabel)} · desviacion ${escapeHtml(row.deviationLabel)}
+      ${escapeHtml(row.assignee)} · ${escapeHtml(t("logged").toLowerCase())} ${escapeHtml(row.spentLabel)} · ${escapeHtml(t("estimated").toLowerCase())} ${escapeHtml(row.originalLabel)} · ${escapeHtml(t("deviation").toLowerCase())} ${escapeHtml(row.deviationLabel)}
     </div>
     <div class="accuracy-breakdown-list">
       <div class="accuracy-breakdown-item accuracy-breakdown-head">
-        <span>Ticket</span>
-        <span>Tarea</span>
-        <span>Registrado</span>
-        <span>Estimado</span>
-        <span>Desviacion</span>
+        <span>${escapeHtml(t("ticket"))}</span>
+        <span>${escapeHtml(t("description"))}</span>
+        <span>${escapeHtml(t("logged"))}</span>
+        <span>${escapeHtml(t("estimated"))}</span>
+        <span>${escapeHtml(t("deviation"))}</span>
       </div>
       ${row.items.map((item) => {
         const issueUrl = getJiraIssueUrl(item.issue);
@@ -2543,7 +2645,7 @@ function renderDailyResourceLoad(dailyLoad) {
   elements.analytics.dailyLoadHeatmap.innerHTML = `
     <div class="heatmap-scroll">
       <div class="heatmap-grid" style="grid-template-columns: minmax(160px, 220px) repeat(${visibleDates.length}, minmax(74px, 1fr));">
-        <div class="heatmap-corner">Usuario</div>
+        <div class="heatmap-corner">${escapeHtml(t("dailyHeatmapCorner"))}</div>
         ${visibleDates.map((date) => `<div class="heatmap-date" title="${escapeHtml(formatDateLong(date))}">${escapeHtml(formatShortDate(date))}</div>`).join("")}
         ${dailyLoad.rows.map((row) => `
           <div class="heatmap-user" title="${escapeHtml(row.assignee)}">${escapeHtml(row.assignee)}</div>
@@ -2559,20 +2661,20 @@ function renderDailyResourceLoad(dailyLoad) {
         `).join("")}
       </div>
     </div>
-    <div class="detail-limit">Ventana visible: 15 dias antes y 15 dias despues de hoy, mostrando solo dias laborales.</div>
+    <div class="detail-limit">${escapeHtml(t("dailyWindowNote"))}</div>
   `;
 
   elements.analytics.dailyLoadTable.innerHTML = `
-    <div class="daily-table-title">Tabla ejecutiva de utilizacion</div>
-    <div class="daily-table" role="table" aria-label="Tabla ejecutiva de carga diaria por recurso">
+    <div class="daily-table-title">${escapeHtml(t("dailyTableTitle"))}</div>
+    <div class="daily-table" role="table" aria-label="${escapeHtml(t("dailyTableAriaLabel"))}">
       <div class="daily-table-row daily-table-head" role="row">
-        <span role="columnheader">Usuario</span>
-        <span role="columnheader">Fecha</span>
-        <span role="columnheader">Horas asignadas</span>
-        <span role="columnheader">Capacidad diaria</span>
-        <span role="columnheader">% Carga</span>
-        <span role="columnheader">Estado</span>
-        <span role="columnheader">Detalle</span>
+        <span role="columnheader">${escapeHtml(t("dailyHeatmapCorner"))}</span>
+        <span role="columnheader">${escapeHtml(t("date"))}</span>
+        <span role="columnheader">${escapeHtml(t("assignedHours"))}</span>
+        <span role="columnheader">${escapeHtml(t("dailyCapacity"))}</span>
+        <span role="columnheader">${escapeHtml(t("loadPercent"))}</span>
+        <span role="columnheader">${escapeHtml(t("loadStatus"))}</span>
+        <span role="columnheader">${escapeHtml(t("detail"))}</span>
       </div>
       ${dailyLoad.tableRows.slice(0, 80).map((row, index) => `
         <div class="daily-table-row" role="row">
@@ -2582,14 +2684,14 @@ function renderDailyResourceLoad(dailyLoad) {
           <span role="cell">8h</span>
           <strong role="cell">${row.utilization}%</strong>
           <span role="cell" class="load-pill load-${row.level}" title="${escapeHtml(row.status)}">${escapeHtml(row.status)}</span>
-          <button class="daily-detail-toggle" type="button" data-daily-load-detail="${index}" aria-expanded="false">Ver tickets</button>
+          <button class="daily-detail-toggle" type="button" data-daily-load-detail="${index}" aria-expanded="false">${escapeHtml(t("viewTickets"))}</button>
         </div>
         <div class="daily-load-breakdown" id="daily-load-detail-${index}" hidden>
           ${renderDailyLoadBreakdown(row)}
         </div>
       `).join("")}
     </div>
-    ${dailyLoad.tableRows.length > 80 ? `<div class="detail-limit">Mostrando 80 de ${dailyLoad.tableRows.length} filas con carga. Usa filtros globales para acotar el analisis.</div>` : ""}
+    ${dailyLoad.tableRows.length > 80 ? `<div class="detail-limit">${escapeHtml(state.language === "en" ? `Showing 80 of ${dailyLoad.tableRows.length} rows with load. Use global filters to narrow the analysis.` : `Mostrando 80 de ${dailyLoad.tableRows.length} filas con carga. Usa filtros globales para acotar el analisis.`)}</div>` : ""}
   `;
 }
 
@@ -2609,7 +2711,7 @@ function renderDailyLoadBreakdown(row) {
         .sort((a, b) => b.dailyHours - a.dailyHours)
         .map(({ issue, dailyHours, workingDays, originalHours, startDate, endDate }) => {
           const issueUrl = getJiraIssueUrl(issue);
-          const estimateScope = issue.originalEstimate.includesSubtasks ? " incl. subtareas" : "";
+          const estimateScope = issue.originalEstimate.includesSubtasks ? ` ${t("inclSubtasks")}` : "";
           const formula = `${formatHours(originalHours)}${estimateScope} / ${workingDays} dias laborales = ${formatHours(dailyHours)}`;
           return `
             <div class="daily-breakdown-item ${issue.isEpic ? "is-epic" : ""}">
@@ -2701,7 +2803,7 @@ function renderIssueDetailItem(issue, meta) {
     <div class="issue-detail-item">
       <span title="${escapeHtml(issueTitle)}">
         ${issueUrl
-          ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir ${escapeHtml(issueTitle)} en Jira"><strong>${escapeHtml(issue.key)}</strong>${escapeHtml(getShortTitle(issue.title))}</a>`
+          ? `<a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(t("openInJira"))}: ${escapeHtml(issueTitle)}"><strong>${escapeHtml(issue.key)}</strong>${escapeHtml(getShortTitle(issue.title))}</a>`
           : `<strong>${escapeHtml(issue.key)}</strong>${escapeHtml(getShortTitle(issue.title))}`}
       </span>
       <em title="${escapeHtml(issue.assignee)}">${escapeHtml(issue.assignee)}</em>
@@ -2740,7 +2842,7 @@ function handleDailyLoadDetailClick(event) {
 
   detail.hidden = !detail.hidden;
   button.setAttribute("aria-expanded", String(!detail.hidden));
-  button.textContent = detail.hidden ? "Ver tickets" : "Ocultar";
+  button.textContent = detail.hidden ? t("viewTickets") : t("hideLogs");
 }
 
 function handleAccuracyDetailClick(event) {
@@ -2752,7 +2854,7 @@ function handleAccuracyDetailClick(event) {
 
   detail.hidden = !detail.hidden;
   button.setAttribute("aria-expanded", String(!detail.hidden));
-  button.textContent = detail.hidden ? "Ver tickets" : "Ocultar";
+  button.textContent = detail.hidden ? t("viewTickets") : t("hideLogs");
 }
 
 function handleKpiExportClick(event) {
@@ -3946,44 +4048,47 @@ function getUnitWidth() {
 }
 
 function getTimelineLabel(date, step) {
+  const locale = state.language === "en" ? "en-US" : "es-CO";
+
   if (step === "quarter") {
-    return `T${Math.floor(date.getMonth() / 3) + 1}`;
+    return `${t("quarterPrefix")}${Math.floor(date.getMonth() / 3) + 1}`;
   }
 
   if (step === "month") {
-    return date.toLocaleDateString("es-CO", { month: "short" });
+    return date.toLocaleDateString(locale, { month: "short" });
   }
 
   if (step === "week") {
-    return `S${getWeekNumber(date)}`;
+    return `${t("weekPrefix")}${getWeekNumber(date)}`;
   }
 
   return String(date.getDate());
 }
 
 function getTimelineSublabel(date, step) {
+  const locale = state.language === "en" ? "en-US" : "es-CO";
   if (step === "quarter") return String(date.getFullYear());
   if (step === "month") return String(date.getFullYear());
-  return date.toLocaleDateString("es-CO", { month: "short" });
+  return date.toLocaleDateString(locale, { month: "short" });
 }
 
 function getTooltipText(issue) {
   const duration = issue.startDate && issue.endDate
-    ? `${diffDays(parseLocalDate(issue.startDate), parseLocalDate(issue.endDate)) + 1} dias`
-    : "Sin duracion";
+    ? `${diffDays(parseLocalDate(issue.startDate), parseLocalDate(issue.endDate)) + 1} ${t("durationDays")}`
+    : t("noDuration");
 
   return [
-    `Clave: ${issue.key}`,
-    `Resumen: ${issue.title}`,
-    `Usuario: ${issue.assignee}`,
-    `Estado: ${issue.status}`,
-    `Inicio: ${issue.startDate || "Sin fecha"}`,
-    `Fin: ${issue.endDate || "Sin fecha"}`,
-    `Duracion: ${duration}`,
-    `Prioridad: ${issue.priority}`,
-    `Estimacion original: ${getOriginalEstimateTitle(issue)}`,
-    `Seguimiento de tiempo: ${issue.timeTracking.tooltip}`,
-    issue.dependencyCount ? `Dependencias: ${issue.dependencyCount}` : ""
+    `${t("tooltipKey")}: ${issue.key}`,
+    `${t("tooltipSummary")}: ${issue.title}`,
+    `${t("tooltipUser")}: ${issue.assignee}`,
+    `${t("tooltipStatus")}: ${issue.status}`,
+    `${t("tooltipStart")}: ${issue.startDate || t("noDate")}`,
+    `${t("tooltipEnd")}: ${issue.endDate || t("noDate")}`,
+    `${t("tooltipDuration")}: ${duration}`,
+    `${t("tooltipPriority")}: ${issue.priority}`,
+    `${t("tooltipEstimate")}: ${getOriginalEstimateTitle(issue)}`,
+    `${t("tooltipTracking")}: ${issue.timeTracking.tooltip}`,
+    issue.dependencyCount ? `${t("tooltipDependencies")}: ${issue.dependencyCount}` : ""
   ].filter(Boolean).join("\n");
 }
 
@@ -3992,21 +4097,22 @@ function getDailyLoadTooltip(cell) {
     .slice(0, 5)
     .map((issue) => issue.key)
     .join(", ");
-  const extra = cell.issues.length > 5 ? ` +${cell.issues.length - 5} mas` : "";
+  const extra = cell.issues.length > 5 ? ` +${cell.issues.length - 5} ${state.language === "en" ? "more" : "mas"}` : "";
+  const noTickets = state.language === "en" ? "No assigned tickets" : "Sin tickets asignados";
 
   return [
-    `Usuario: ${cell.assignee}`,
-    `Fecha: ${formatDateLong(cell.date)}`,
-    `Horas asignadas: ${formatHours(cell.hours)}`,
-    `Utilizacion: ${cell.utilization}%`,
-    `Estado: ${cell.status}`,
-    cell.issueCount ? `Tickets: ${sampleIssues}${extra}` : "Sin tickets asignados"
+    `${t("tooltipUser")}: ${cell.assignee}`,
+    `${t("date")}: ${formatDateLong(cell.date)}`,
+    `${t("assignedHours")}: ${formatHours(cell.hours)}`,
+    `${state.language === "en" ? "Utilization" : "Utilizacion"}: ${cell.utilization}%`,
+    `${t("loadStatus")}: ${cell.status}`,
+    cell.issueCount ? `Tickets: ${sampleIssues}${extra}` : noTickets
   ].join("\n");
 }
 
 function getOriginalEstimateTitle(issue) {
   return issue.originalEstimate.includesSubtasks
-    ? `${issue.originalEstimate.label} (${issue.originalEstimate.subtaskCount} subtareas incluidas)`
+    ? `${issue.originalEstimate.label} (${issue.originalEstimate.subtaskCount} ${t("inclSubtasks")})`
     : issue.originalEstimate.label;
 }
 
@@ -4215,8 +4321,9 @@ function formatSignedSeconds(seconds) {
 }
 
 function formatHours(hours) {
+  const locale = state.language === "en" ? "en-US" : "es-CO";
   const rounded = Math.round(hours * 10) / 10;
-  return `${rounded.toLocaleString("es-CO", { maximumFractionDigits: 1 })}h`;
+  return `${rounded.toLocaleString(locale, { maximumFractionDigits: 1 })}h`;
 }
 
 function getIssueProgress(statusClass) {
@@ -4513,14 +4620,16 @@ function toDateKey(date) {
 }
 
 function formatShortDate(dateKey) {
-  return parseLocalDate(dateKey).toLocaleDateString("es-CO", {
+  const locale = state.language === "en" ? "en-US" : "es-CO";
+  return parseLocalDate(dateKey).toLocaleDateString(locale, {
     day: "2-digit",
     month: "short"
   });
 }
 
 function formatDateLong(dateKey) {
-  return parseLocalDate(dateKey).toLocaleDateString("es-CO", {
+  const locale = state.language === "en" ? "en-US" : "es-CO";
+  return parseLocalDate(dateKey).toLocaleDateString(locale, {
     weekday: "short",
     year: "numeric",
     month: "short",

@@ -56,7 +56,14 @@ if (require.main === module) {
 module.exports = { server, startServer };
 
 async function proxyJiraSearch(request, response) {
-  const body = await readRequestBody(request);
+  let body;
+  try {
+    body = await readRequestBody(request);
+  } catch (error) {
+    request.resume();
+    sendJson(response, 413, { message: "El cuerpo de la solicitud excede el limite de 1 MB." });
+    return;
+  }
   const { baseUrl, user, token, jql, fields, maxResults } = JSON.parse(body || "{}");
 
   if (!baseUrl || !user || !token || !jql) {
@@ -90,7 +97,14 @@ async function proxyJiraSearch(request, response) {
 }
 
 async function proxyJiraWorklog(request, response) {
-  const body = await readRequestBody(request);
+  let body;
+  try {
+    body = await readRequestBody(request);
+  } catch (error) {
+    request.resume();
+    sendJson(response, 413, { message: "El cuerpo de la solicitud excede el limite de 1 MB." });
+    return;
+  }
   const { baseUrl, user, token, issueKey } = JSON.parse(body || "{}");
 
   if (!baseUrl || !user || !token || !issueKey) {
@@ -406,17 +420,23 @@ function serveStaticFile(request, response) {
 function readRequestBody(request) {
   return new Promise((resolve, reject) => {
     let body = "";
+    let rejected = false;
 
     request.on("data", (chunk) => {
+      if (rejected) return;
       body += chunk;
 
       if (body.length > 1024 * 1024) {
-        request.destroy();
+        rejected = true;
         reject(new Error("Request demasiado grande."));
       }
     });
 
-    request.on("end", () => resolve(body));
-    request.on("error", reject);
+    request.on("end", () => {
+      if (!rejected) resolve(body);
+    });
+    request.on("error", (err) => {
+      if (!rejected) reject(err);
+    });
   });
 }
