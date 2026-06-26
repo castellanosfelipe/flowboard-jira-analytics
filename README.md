@@ -58,9 +58,12 @@ El token solo vive en memoria de sesión. FlowBoard es **solo lectura** — nunc
 
 - Navega entre vistas de 1 semana / 1 mes / trimestre
 - Expande issues para ver sus subtareas anidadas
+- Agrupa por **responsable** o por **épica** con un click
 - Descarga el detalle completo a `.xls` con un click
 
-![Sprint Analytics — Vista Gantt](docs/screenshots/sprint-analytics-gantt.png)
+![Sprint Analytics — Gantt agrupado por responsable](docs/screenshots/sprint-analytics-gantt.png)
+
+![Sprint Analytics — Gantt agrupado por épica](docs/screenshots/sprint-gantt-por-epica.png)
 
 ---
 
@@ -124,6 +127,8 @@ URL y usuario se guardan en el navegador. Cambia el JQL según el sprint o proye
 ## Inicio rápido
 
 **Sin `npm install`. Sin Docker. Sin configuración.**
+
+> **¿Quieres explorar antes de conectar Jira?** Abre **Settings → Modo Demo** y carga 25 issues ficticios del proyecto ENG con datos reales de estimación, dependencias y envejecimiento — sin introducir ninguna credencial.
 
 ```bash
 # 1. Clona el repo

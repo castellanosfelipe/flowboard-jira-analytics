@@ -535,6 +535,7 @@ function bindEvents() {
   elements.configToggle.addEventListener("click", toggleConfigPanel);
   elements.filtersToggle.addEventListener("click", toggleFiltersPanel);
   elements.searchButton.addEventListener("click", handleSearch);
+  document.querySelector("#demoButton")?.addEventListener("click", loadDemoData);
   elements.refreshButton.addEventListener("click", handleRefresh);
   elements.clearFiltersButton.addEventListener("click", clearFilters);
   elements.expandAllButton.addEventListener("click", expandAll);
@@ -920,6 +921,31 @@ async function handleRefresh() {
   }
 
   await loadJiraData(t("refreshing"));
+}
+
+async function loadDemoData() {
+  setLoading(true, "Cargando datos de demo...");
+  try {
+    const response = await fetch("/api/demo");
+    if (!response.ok) throw new Error("No se pudo cargar el demo desde el servidor local.");
+    const data = await response.json();
+    const issues = Array.isArray(data.issues) ? data.issues : [];
+    const normalizedIssues = normalizeIssues(issues);
+    state.normalizedIssues = normalizedIssues;
+    state.collapsedUsers.clear();
+    state.collapsedTasks.clear();
+    state.expandedWorklogs.clear();
+    state.expandedMissingEstimates.clear();
+    state.worklogsByIssue = {};
+    state.worklogLoading.clear();
+    setActiveView("analytics");
+    populateFilterOptions(normalizedIssues);
+    applyFilters();
+  } catch (error) {
+    handleApiError(error);
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function loadJiraData(loadingText = "Consultando...") {

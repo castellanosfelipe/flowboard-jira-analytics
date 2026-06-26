@@ -32,6 +32,11 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "GET" && requestPath === "/api/demo") {
+      sendJson(response, 200, require("./demo-data"));
+      return;
+    }
+
     serveStaticFile(request, response);
   } catch (error) {
     sendJson(response, 500, {
