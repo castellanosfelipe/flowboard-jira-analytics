@@ -80,7 +80,7 @@ Score = (dependencias_salientes × 16)
       + vence_pronto (+10)
 ```
 
-Los 5 issues con mayor score aparecen destacados en rojo. Son los que, si se atrasan, se llevan el sprint.
+Cada tarjeta muestra su **fecha de vencimiento** (en rojo si está vencida, ámbar si vence pronto), cuántas actividades **bloquea** y por cuántas está **bloqueada**, y las líneas conectan las dependencias por niveles. Los issues con mayor score se marcan como **cuello de botella** — son los que, si se atrasan, se llevan el sprint.
 
 ![Cycle Time & Flow — Grafo de dependencias PERT](docs/screenshots/cycle-time-dependencias.png)
 
