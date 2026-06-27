@@ -354,6 +354,7 @@ function requestJira(jiraUrl, user, token) {
     const url = new URL(jiraUrl);
     const request = https.request({
       hostname: url.hostname,
+      port: url.port || 443,
       path: `${url.pathname}${url.search}`,
       method: "GET",
       headers: {
