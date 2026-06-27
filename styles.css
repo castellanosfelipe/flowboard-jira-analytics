@@ -1221,6 +1221,11 @@ html.sidebar-collapsed .jira-conn-label { opacity: 0; }
   margin-top: 3px;
 }
 
+/* La tarjeta de carga diaria tiene un toggle a la derecha de la cabecera
+   que chocaba con los botones de acción (exportar/info) posicionados en
+   la esquina superior derecha. Reservamos espacio para que no se solapen. */
+.daily-load-card .analytics-card-header { padding-right: 60px; }
+
 /* Aging buckets — tarjetas con color por severidad */
 .bucket-grid {
   display: grid;
