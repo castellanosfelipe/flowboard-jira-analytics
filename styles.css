@@ -1221,12 +1221,166 @@ html.sidebar-collapsed .jira-conn-label { opacity: 0; }
   margin-top: 3px;
 }
 
-/* Aging buckets */
+/* Aging buckets — tarjetas con color por severidad */
 .bucket-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-top: 12px;
+  align-items: start;
+}
+
+.bucket {
+  --bucket-color: var(--text-secondary);
+  --bucket-bg: var(--surface-overlay);
+  position: relative;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+.bucket::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--bucket-color);
+}
+.bucket:hover { border-color: var(--border-default); box-shadow: var(--shadow-xs); }
+.bucket[open] { border-color: color-mix(in srgb, var(--bucket-color) 40%, var(--border-default)); }
+
+.bucket-normal { --bucket-color: var(--data-positive); --bucket-bg: var(--data-positive-bg); }
+.bucket-warning { --bucket-color: var(--data-warning);  --bucket-bg: var(--data-warning-bg); }
+.bucket-risk    { --bucket-color: var(--data-critical); --bucket-bg: var(--data-critical-bg); }
+
+.bucket > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bucket > summary::-webkit-details-marker { display: none; }
+.bucket > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+.bucket-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  background: var(--bucket-bg);
+  color: var(--bucket-color);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.bucket-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--bucket-color); }
+
+.bucket-count {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.bucket-period { font-size: 12px; color: var(--text-secondary); }
+
+.bucket-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bucket-color);
+}
+.bucket-cta i { font-style: normal; transition: transform 150ms; }
+.bucket[open] .bucket-cta i { transform: rotate(90deg); }
+
+.bucket-detail {
+  padding: 4px 12px 12px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--canvas);
+}
+
+.bucket-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 4px 2px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.bucket-pager-actions { display: inline-flex; align-items: center; gap: 8px; }
+.bucket-pager-actions strong { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.bucket-page-button {
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 100ms;
+}
+.bucket-page-button:hover:not(:disabled) { border-color: var(--brand-muted); color: var(--brand); }
+.bucket-page-button:disabled { opacity: 0.4; cursor: default; }
+
+/* Item de ticket dentro del detalle del cubo */
+.issue-detail-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 10px;
+  row-gap: 1px;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.issue-detail-item:last-child { border-bottom: none; }
+.issue-detail-item > span {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.issue-detail-item a { color: inherit; text-decoration: none; }
+.issue-detail-item strong {
+  margin-right: 6px;
+  color: var(--brand);
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+}
+.issue-detail-item a:hover strong { color: var(--brand-hover); }
+.issue-detail-item > small {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.issue-detail-item > em {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 
 /* Heatmap */

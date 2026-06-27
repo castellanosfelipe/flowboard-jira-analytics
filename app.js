@@ -2797,16 +2797,22 @@ function renderAgingBuckets(buckets) {
     const visibleItems = bucket.items.slice(firstItem, firstItem + AGING_BUCKET_PAGE_SIZE);
     const openAttribute = state.openAgingBuckets.has(bucketId) ? " open" : "";
 
+    const severity = bucket.severity || "normal";
+    const ctaText = state.language === "en" ? "View tickets" : "Ver tickets";
+    const openLabel = state.language === "en" ? "days open" : "días abierto";
+
     return `
-      <details class="bucket" data-aging-bucket-id="${escapeHtml(bucketId)}"${openAttribute}>
+      <details class="bucket bucket-${escapeHtml(severity)}" data-aging-bucket-id="${escapeHtml(bucketId)}"${openAttribute}>
         <summary>
-          <strong>${bucket.count}</strong>
-          <span title="${escapeHtml(bucket.label)}">${escapeHtml(bucket.label)}</span>
+          <span class="bucket-tag"><span class="bucket-dot"></span>${escapeHtml(bucket.tag || bucket.label)}</span>
+          <strong class="bucket-count">${bucket.count}</strong>
+          <span class="bucket-period">${escapeHtml(bucket.period || bucket.label)}</span>
+          <span class="bucket-cta">${escapeHtml(ctaText)}<i aria-hidden="true">›</i></span>
         </summary>
         <div class="bucket-detail">
           ${visibleItems.length
-            ? visibleItems.map((issue) => renderIssueDetailItem(issue, `${getAgingDays(issue)} dias abierto`)).join("")
-            : `<div class="metric-empty">Sin tickets en este rango.</div>`}
+            ? visibleItems.map((issue) => renderIssueDetailItem(issue, `${getAgingDays(issue)} ${openLabel}`)).join("")
+            : `<div class="metric-empty">${escapeHtml(state.language === "en" ? "No tickets in this range." : "Sin tickets en este rango.")}</div>`}
           ${renderAgingBucketPager(bucket, bucketId, page, totalPages)}
         </div>
       </details>
@@ -3413,10 +3419,12 @@ function getAgingDays(issue) {
 }
 
 function getAgingBuckets(issues) {
+  const isEn = state.language === "en";
+  // `label` se mantiene para IDs de estado, export y aria; period/tag/severity son para el diseño en tarjetas.
   const buckets = [
-    { label: "0-7 dias Normal", count: 0, items: [] },
-    { label: "7-30 dias Atencion", count: 0, items: [] },
-    { label: ">30 dias Riesgo", count: 0, items: [] }
+    { label: "0-7 dias Normal", severity: "normal", period: isEn ? "0–7 days" : "0–7 días", tag: isEn ? "Normal" : "Normal", count: 0, items: [] },
+    { label: "7-30 dias Atencion", severity: "warning", period: isEn ? "7–30 days" : "7–30 días", tag: isEn ? "Attention" : "Atención", count: 0, items: [] },
+    { label: ">30 dias Riesgo", severity: "risk", period: isEn ? ">30 days" : ">30 días", tag: isEn ? "Risk" : "Riesgo", count: 0, items: [] }
   ];
 
   issues.forEach((issue) => {
