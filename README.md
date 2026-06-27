@@ -151,6 +151,26 @@ open http://localhost:4173
 2. Crea un token (nombre sugerido: `flowboard-local`)
 3. Cópialo — solo se muestra una vez
 
+### Conectar y consultar tus datos
+
+Con `node server.js` corriendo y la app abierta en `http://localhost:4173`:
+
+1. Ve a **Settings → Configuración de Jira**
+2. Completa:
+   - **URL base**: `https://tu-empresa.atlassian.net` (sin barra final)
+   - **Email o usuario**: el email de tu cuenta Atlassian
+   - **API Token**: el token del paso anterior
+   - **JQL**: la consulta, p. ej. `project = DES ORDER BY updated DESC`
+3. Pulsa **Consultar Jira** (botón arriba a la derecha). Los datos aparecen en Overview, Sprint Analytics y Cycle Time & Flow.
+
+El proxy recorre todas las páginas automáticamente (endpoint nuevo `/rest/api/3/search/jql` con respaldo al legacy) y trae todos los campos (`*all`).
+
+**Solución de problemas:**
+- *"No se pudo conectar con el proxy local"* → el navegador no encuentra `server.js`. Verifica que esté corriendo y que abriste `http://localhost:4173` (no el archivo `index.html` directo).
+- *Token inválido / 401* → revisa email + API token; el token es de [id.atlassian.com](https://id.atlassian.com/manage-profile/security/api-tokens), no tu contraseña.
+- *Las barras del Gantt salen "sin fecha"* → tus issues no tienen fecha de inicio/fin ni estimación; FlowBoard usa como respaldo cualquier campo de fecha y, en último caso, `created`/`updated`.
+- *Jira self-hosted en puerto no estándar* → incluye el puerto en la URL base (p. ej. `https://jira.empresa.com:8443`); el proxy ahora lo respeta.
+
 ---
 
 ## Demo en línea (GitHub Pages)
