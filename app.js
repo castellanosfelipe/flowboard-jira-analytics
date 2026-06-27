@@ -3341,25 +3341,35 @@ function formatExportFilterValue(values) {
 }
 
 function downloadExcelWorkbook(baseFilename, sections) {
-  const html = `
-    <!doctype html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; }
-          h2 { margin: 22px 0 8px; font-size: 16px; }
-          table { border-collapse: collapse; margin-bottom: 18px; width: 100%; }
-          th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; vertical-align: top; }
-          th { background: #e2e8f0; font-weight: 700; }
-        </style>
-      </head>
-      <body>
-        ${sections.map(renderExportSection).join("")}
-      </body>
-    </html>
-  `;
-  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
+  // Namespaces de Office + nombre de hoja: Excel lo reconoce como libro y
+  // evita el aviso de "archivo dañado". El BOM UTF-8 (﻿) es clave para
+  // que los acentos (García, Atención, días) no salgan corruptos en Excel.
+  const sheetName = "FlowBoard";
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+<meta charset="utf-8">
+<!--[if gte mso 9]><xml>
+<x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+<x:Name>${escapeHtml(sheetName)}</x:Name>
+<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+  body { font-family: Arial, sans-serif; }
+  h2 { margin: 22px 0 8px; font-size: 16px; }
+  table { border-collapse: collapse; margin-bottom: 18px; width: 100%; }
+  th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; vertical-align: top; mso-number-format:"\\@"; }
+  th { background: #e2e8f0; font-weight: 700; }
+  td.num { mso-number-format:"General"; text-align: right; }
+</style>
+</head>
+<body>
+${sections.map(renderExportSection).join("")}
+</body>
+</html>`;
+  // El BOM (﻿) fuerza a Excel a leer el archivo como UTF-8.
+  const blob = new Blob(["﻿" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
 
@@ -3371,6 +3381,14 @@ function downloadExcelWorkbook(baseFilename, sections) {
   URL.revokeObjectURL(url);
 }
 
+function renderExportCell(cell) {
+  // Los números van como número (sumables/ordenables en Excel); el resto como texto.
+  if (typeof cell === "number" && Number.isFinite(cell)) {
+    return `<td class="num">${cell}</td>`;
+  }
+  return `<td>${escapeHtml(cell ?? "")}</td>`;
+}
+
 function renderExportSection(section) {
   return `
     <h2>${escapeHtml(section.title)}</h2>
@@ -3380,7 +3398,7 @@ function renderExportSection(section) {
       </thead>
       <tbody>
         ${section.rows.length
-          ? section.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell ?? "")}</td>`).join("")}</tr>`).join("")
+          ? section.rows.map((row) => `<tr>${row.map(renderExportCell).join("")}</tr>`).join("")
           : `<tr><td colspan="${section.headers.length}">Sin datos</td></tr>`}
       </tbody>
     </table>
