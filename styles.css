@@ -1757,7 +1757,7 @@ html.sidebar-collapsed .jira-conn-label { opacity: 0; }
 .gantt-ticket-table,
 .missing-estimate-table,
 .accuracy-table,
-.daily-table { width: 100%; overflow-x: auto; scrollbar-width: thin; }
+.daily-table { width: 100%; max-height: 460px; overflow: auto; scrollbar-width: thin; }
 
 /* Filas como grid */
 .gantt-ticket-table-row,
