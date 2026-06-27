@@ -59,7 +59,7 @@ El token solo vive en memoria de sesión. FlowBoard es **solo lectura** — nunc
 - Navega entre vistas de 1 semana / 1 mes / trimestre
 - Expande issues para ver sus subtareas anidadas
 - Agrupa por **responsable** o por **épica** con un click
-- Descarga el detalle completo a `.xls` con un click
+- Descarga el detalle completo a `.csv` (abre en Excel, Numbers o Google Sheets) con un click
 
 ![Sprint Analytics — Gantt agrupado por responsable](docs/screenshots/sprint-analytics-gantt.png)
 
@@ -188,7 +188,7 @@ La versión publicada en GitHub Pages funciona en **modo demo**: abre **Settings
 
 ## Exportaciones disponibles
 
-Cada vista incluye botones de descarga directa a `.xls`:
+Cada vista incluye botones de descarga directa a `.csv` (UTF-8, se abren como tabla en Excel, Numbers, Google Sheets y LibreOffice):
 
 | Archivo generado | Contenido |
 |---|---|

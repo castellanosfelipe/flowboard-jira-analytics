@@ -3341,68 +3341,42 @@ function formatExportFilterValue(values) {
 }
 
 function downloadExcelWorkbook(baseFilename, sections) {
-  // Namespaces de Office + nombre de hoja: Excel lo reconoce como libro y
-  // evita el aviso de "archivo dañado". El BOM UTF-8 (﻿) es clave para
-  // que los acentos (García, Atención, días) no salgan corruptos en Excel.
-  const sheetName = "FlowBoard";
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head>
-<meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
-<meta charset="utf-8">
-<!--[if gte mso 9]><xml>
-<x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
-<x:Name>${escapeHtml(sheetName)}</x:Name>
-<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook>
-</xml><![endif]-->
-<style>
-  body { font-family: Arial, sans-serif; }
-  h2 { margin: 22px 0 8px; font-size: 16px; }
-  table { border-collapse: collapse; margin-bottom: 18px; width: 100%; }
-  th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; vertical-align: top; mso-number-format:"\\@"; }
-  th { background: #e2e8f0; font-weight: 700; }
-  td.num { mso-number-format:"General"; text-align: right; }
-</style>
-</head>
-<body>
-${sections.map(renderExportSection).join("")}
-</body>
-</html>`;
-  // El BOM (﻿) fuerza a Excel a leer el archivo como UTF-8.
-  const blob = new Blob(["﻿" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
+  // Exportamos CSV (no HTML-como-.xls): el truco HTML solo lo entiende
+  // Microsoft Excel; en Numbers, Google Sheets o LibreOffice se abría como
+  // texto plano. CSV se abre como tabla en TODOS. El BOM UTF-8 (﻿) hace
+  // que Excel lea los acentos (García, Atención, días) correctamente.
+  // Las secciones se apilan en una sola hoja, separadas por una línea vacía.
+  const csv = sections.map(renderCsvSection).join("\r\n\r\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
 
   link.href = url;
-  link.download = `${baseFilename}-${toDateKey(new Date())}.xls`;
+  link.download = `${baseFilename}-${toDateKey(new Date())}.csv`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
 }
 
-function renderExportCell(cell) {
-  // Los números van como número (sumables/ordenables en Excel); el resto como texto.
-  if (typeof cell === "number" && Number.isFinite(cell)) {
-    return `<td class="num">${cell}</td>`;
+function renderCsvSection(section) {
+  const lines = [renderCsvRow([section.title]), renderCsvRow(section.headers)];
+  if (section.rows.length) {
+    section.rows.forEach((row) => lines.push(renderCsvRow(row)));
+  } else {
+    lines.push(renderCsvRow(["Sin datos"]));
   }
-  return `<td>${escapeHtml(cell ?? "")}</td>`;
+  return lines.join("\r\n");
 }
 
-function renderExportSection(section) {
-  return `
-    <h2>${escapeHtml(section.title)}</h2>
-    <table>
-      <thead>
-        <tr>${section.headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
-      </thead>
-      <tbody>
-        ${section.rows.length
-          ? section.rows.map((row) => `<tr>${row.map(renderExportCell).join("")}</tr>`).join("")
-          : `<tr><td colspan="${section.headers.length}">Sin datos</td></tr>`}
-      </tbody>
-    </table>
-  `;
+function renderCsvRow(cells) {
+  return cells.map(renderCsvCell).join(",");
+}
+
+function renderCsvCell(value) {
+  const text = value == null ? "" : String(value);
+  // Entrecomillar si hay comas, comillas o saltos de línea (RFC 4180).
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
 function calculateAvailableCapacity(issues) {
