@@ -2270,7 +2270,99 @@ html.sidebar-collapsed .jira-conn-label { opacity: 0; }
   border-radius: var(--r-lg);
   overflow: hidden;
 }
-.pert-bottleneck-list { padding: 0 16px 16px; }
+.pert-bottleneck-list {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Tarjeta de cuello de botella */
+.pert-bottleneck-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 168px minmax(120px, 190px);
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--data-critical);
+  border-radius: var(--r);
+  transition: box-shadow 120ms, border-color 120ms;
+}
+.pert-bottleneck-row:hover {
+  box-shadow: var(--shadow-xs);
+  border-color: var(--border-default);
+  border-left-color: var(--data-critical);
+}
+
+/* Badge circular del score */
+.pert-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--data-critical-bg);
+  color: var(--data-critical);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bloque central: ticket + título + causas */
+.pert-bottleneck-row > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pert-bottleneck-row > div > a,
+.pert-bottleneck-row > div > strong:first-child {
+  align-self: flex-start;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: none;
+}
+.pert-bottleneck-row > div > a:hover { color: var(--brand-hover); }
+.pert-bottleneck-row > div > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pert-bottleneck-row > div > small {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Pill de estado y responsable */
+.pert-bottleneck-row > .status-pill { justify-self: start; }
+.pert-bottleneck-row > em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .pert-bottleneck-row {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 10px 12px;
+  }
+  .pert-bottleneck-row > em { grid-column: 2 / -1; }
+}
 
 /* ── 15. SETTINGS VIEW ────────────────────────────────────────────────── */
 .settings-layout {
