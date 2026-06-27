@@ -1021,6 +1021,20 @@ async function getJiraIssues() {
     throw new Error("No se pudo conectar con el proxy local. Verifica que el servidor local este corriendo.");
   }
 
+  // El proxy de server.js SIEMPRE responde JSON. Un 405 (Method Not Allowed)
+  // o una respuesta no-JSON significan que el POST llegó a un servidor de
+  // archivos estático (GitHub Pages, Live Server, python -m http.server,
+  // file://) y no al proxy. Sin el proxy no se puede consultar Jira por las
+  // restricciones CORS de Jira Cloud.
+  const contentType = response.headers.get("content-type") || "";
+  if (response.status === 405 || !contentType.includes("application/json")) {
+    throw new Error(
+      `El proxy local no atendió la solicitud (HTTP ${response.status}). ` +
+      "Abre la app ejecutando `node server.js` y entrando a http://localhost:4173 — " +
+      "no funciona desde GitHub Pages, Live Server, python -m http.server ni abriendo index.html directamente."
+    );
+  }
+
   if (response.status === 401) {
     throw new Error("Token invalido o credenciales rechazadas por Jira.");
   }
