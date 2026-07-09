@@ -11,6 +11,7 @@ Conecta tu workspace en 30 segundos. Ve en segundos lo que en Jira tarda horas d
 [![Node.js](https://img.shields.io/badge/Node.js-stdlib_only-339933?style=flat-square&logo=node.js)](https://nodejs.org)
 [![Jira Cloud](https://img.shields.io/badge/Jira-Cloud_API-0052CC?style=flat-square)](https://developer.atlassian.com/cloud/jira/platform/rest/v3/)
 [![Zero dependencies](https://img.shields.io/badge/npm_install-none_required-success?style=flat-square)](package.json)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](./LICENSE)
 
 </div>
 
@@ -250,4 +251,4 @@ Un equipo que usa FlowBoard debería poder responder estas preguntas en menos de
 
 ## Licencia
 
-MIT — úsalo, modifícalo, inclúyelo en tus herramientas internas.
+MIT — úsalo, modifícalo e inclúyelo en tus herramientas internas. Consulta [`LICENSE`](./LICENSE) para ver los términos completos.
